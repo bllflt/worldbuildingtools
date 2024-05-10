@@ -1,0 +1,1 @@
+Various tools to help in worldbuilding perhaps evolution to some fancy GUI app.  Right now it is just to tame and normalize my bit of information spread across various spaces (notes, Obsidian, Freeform, images)
