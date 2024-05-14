@@ -15,7 +15,7 @@ class Reconciler:
 
         md = ''
         for image in images:
-            md += f'![[{image}|{self._image_size}]]'
+            md += f'![[{self._image_root_dir}/{image}|{self._image_size}]]'
         return f'{md}\n\n{trimmed}'
 
     def write_char_file(self, fname, images: list):

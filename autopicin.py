@@ -2,58 +2,40 @@
 
 import os
 import re
+import shutil
 
 OBSIDIAN_ROOT = '~/Library/Mobile Documents/com~apple~CloudDocs/Documents/Obsidian Vault'
-IMAGE_ROOT = '~/Library/Mobile Documents/com~apple~CloudDocs/Export'
+IMAGE_DIR = 'external_images'
+CHARACTER_DIR = 'Characters'
+CHARACTER_TEMPLATE = 'Templates/Character Sheet.md'
 
+character_data_from_image = {}
+os.chdir(os.path.expanduser(OBSIDIAN_ROOT))
+with os.scandir('external_images') as it:
+    for entry in it:
+        if (entry.name in ['.DS_Store', 'Characters not yet in the saga',
+                           'Uncatagorized']):
+            continue
+        if entry.is_file(): 
+            continue
+        with os.scandir(entry.path) as image_it:
+            images = []
+            for sub_entry in image_it:
+                if bool(re.search('(jpg|png)$', sub_entry.name, re.IGNORECASE)):
+                    images.append(sub_entry.path)
+            character_data_from_image[entry.name] = images
 
-def find_subdirs_with_images(root):
-    pass
-
-def decend_directory(dirname):
-    pass
-
-def check_filename(name):
-    pass
-
-def ignore_entry(name):
-
-    rv = False
-    match name:
-        case '.DS_Store':
-            rv = True
-    return rv
-
-
-def name_from_file(filename):
-    pass
-
-def ismarkdown(filename):
-    return bool(re.search(r'*\.md$', filename))
-
-def insert_images(filename, images):
-    with open(filename, "r+") as f:
-        contents = f.read()
-        re.sub(r'!\[100\](file://*.png)', '', contents)
-        new = ''
-        for image in images:
-            new += f'![100](file://{image})'
-        
-        # f.seek(0)
-        # f.write(output)
-        # f.truncate()
+character_data_from_obsidian = {}
+with os.scandir('Characters') as it:
+    for entry in it:
+        name = re.sub('.md$', '', entry.name)
+        if name in character_data_from_image:
+            print(f'{name}: ')
+            for img in character_data_from_image[name]:
+                print(f"\t {img}")
+            del character_data_from_image[name]
+        else:
+            print(f'{name} is missing picture(s)')
+for key in character_data_from_image:
     
-    
-
-image_subdirs = find_subdirs_with_images(IMAGE_ROOT)
-
-expanded = os.path.expanduser(OBSIDIAN_ROOT)
-for entry in os.listdir(expanded):
-    fullpath = f'{expanded}/{entry}'
-    if ignore_entry(entry): next
-    if os.path.isdir(fullpath):
-        decend_directory(fullpath)
-    elif ismarkdown(entry):
-        char_name = name_from_file(entry)
-        if char_name in image_subdirs:
-            insert_images(fullpath, image_subdirs[char_name])
+    print(f'{key} is missing a note')             
