@@ -4,5 +4,5 @@ setup(
     name='wbcr-reconcilder',
     version='1.0.0',
     description='',
-    packages=find_namespace_packages(include=['wbcr.*']),
+    include_package_data=True,
 )

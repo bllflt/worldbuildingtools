@@ -1,8 +1,7 @@
 import re
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 import os
 import yaml
-from jinja2 import Environment, PackageLoader, select_autoescape
 
 
 class Character():
@@ -31,15 +30,6 @@ class Character():
                         Path(file.path).relative_to(pp / 'characters',
                                                     walk_up=True))
         setattr(self, 'images', images)
-
-    def render_as_html(self) -> str:
-
-        env = Environment(
-            loader=PackageLoader('wbcr'),
-            autoescape=select_autoescape()
-        )
-        template = env.get_template("overview.html")
-        return template.render(self.get_overview_data())
 
     def get_overview_data(self) -> dict:
         overview = {}

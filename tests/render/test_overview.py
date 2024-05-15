@@ -2,9 +2,10 @@ import difflib
 from pathlib import Path
 
 from wbcr.characters.character import Character
+from wbcr.render.character_overview import CharacterOverview
 
 
-class TestCharacter:
+class TestRenderCharacterOverview:
 
     def test_render_as_html(self):
 
@@ -15,10 +16,7 @@ class TestCharacter:
         graurog.load(
             root_dir=test_root_dir,
             root_overview_dir=test_data_dir)
-        html = graurog.render_as_html()
-
-        with open(f'{Path(__file__).parent}/Graurog.html', 'w') as file:
-           file.write(html)
+        html = CharacterOverview.render_as_html(graurog)
 
         diff = difflib.unified_diff(
             html,
