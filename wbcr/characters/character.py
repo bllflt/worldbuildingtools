@@ -7,10 +7,16 @@ class Character():
         overview = {}
         for elm in ['images', 'name', 'apperance', 'roleplaying',
                     'background']:
-            overview[elm] = getattr(self, elm)
+            try:
+                overview[elm] = getattr(self, elm)
+            except:
+                continue
         kr = []
-        for rel_type in self.key_relationships:
-            for rel in self.key_relationships[rel_type]:
-                kr.append(rel)
+        try:
+            for rel_type in self.key_relationships:
+                for rel in self.key_relationships[rel_type]:
+                    kr.append(rel)
+        except:
+            pass
         overview['kr_list'] = kr
         return overview

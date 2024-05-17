@@ -3,27 +3,44 @@
 import re
 from collections import defaultdict
 
-from wbcr.characters.character import Character
-from wbcr.dao import daoOfCharacterOverviewData
+from wbcr.dao.daoOfCharacterOverviewData import DaoOfCharacterOverViewData
 from wbcr.render.character_overview import CharacterOverview
 from wbcr.render.toc import CharacterTableOfContents
 
 
 def name_for_sorting(name: str) -> str:
-    m = re.match(r'(Lord|Lady|Prince|Princess|Bishop|Queen)\s(.*)', name)
+    royal_title_pattern = '|'.join([
+        'Duke',
+        'Duchess',
+        'Lord',
+        'Lady',
+        'Prince(?: Consort)?',
+        'Princess(?: Consort)?',
+        'Bishop',
+        'Queen',
+        'King'
+    ])
+    m = re.match(r'(?:'
+                 + royal_title_pattern
+                 + ')'
+                 + r'\s(.*)', name)
     if m is not None:
-        name = m.group(1)[0]
+        name = m.group(1)
     return name
 
 
-names = daoOfCharacterOverviewData.get_all_names()
+names = DaoOfCharacterOverViewData.get_all_names()
 for name in names:
-    character = Character(name)
-    with open(name, 'w') as file:
+    character = DaoOfCharacterOverViewData.get_by_name(name)
+    with open(f'{name}.html', 'w') as file:
         file.write(CharacterOverview.render_as_html(character))
 
-by_first_letter = defaultdict([str])
-for name in sorted(names, key=name_for_sorting):
-    by_first_letter[name[0]].append(name)
+names_for_sorting = {}
+for name in names:
+    names_for_sorting[name_for_sorting(name)] = name
+
+by_first_letter = defaultdict(list)
+for sort_name in sorted(names_for_sorting.keys()):
+    by_first_letter[sort_name[0]].append(names_for_sorting[sort_name])
 with open('toc.html', 'w') as file:
     file.write(CharacterTableOfContents.render_as_html(by_first_letter))

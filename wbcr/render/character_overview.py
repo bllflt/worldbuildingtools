@@ -3,7 +3,7 @@ from wbcr.render.base import Base
 
 
 class CharacterOverview(Base):
-  
+
     @classmethod
     def render_as_html(cls, character: Character) -> str:
         template = cls.env.get_template("overview.html")

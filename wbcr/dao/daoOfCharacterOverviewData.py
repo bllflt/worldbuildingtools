@@ -6,7 +6,7 @@ import re
 import yaml
 
 
-class DaoOfCharacterOverView():
+class DaoOfCharacterOverViewData():
     root_path = Path(config.root_dir)
     overview_data_path = root_path.joinpath(config.character_dir)
     image_path = root_path.joinpath(config.image_dir)
@@ -16,7 +16,7 @@ class DaoOfCharacterOverView():
         rv = []
         with os.scandir(cls.overview_data_path) as it:
             for file in it:
-                rv.append(file.name.replace(".md5",  ""))
+                rv.append(file.name.replace(".md",  ""))
         return rv
 
     @classmethod
@@ -30,12 +30,15 @@ class DaoOfCharacterOverView():
                 setattr(character, k, overview[k])
 
         images = []
-        with os.scandir(cls.image_path / name) as it:
-            for file in it:
-                if bool(re.search('(jpg|png)$', file.name, re.IGNORECASE)):
-                    images.append(
-                        Path(file.path).relative_to(
-                            cls.root_path / 'characters',
-                            walk_up=True))
+        try:
+            with os.scandir(cls.image_path / name) as it:
+                for file in it:
+                    if bool(re.search('(jpg|png)$', file.name, re.IGNORECASE)):
+                        images.append(
+                            Path(file.path).relative_to(
+                                cls.root_path / 'characters',
+                                walk_up=True))
+        except:
+            pass
         setattr(character, 'images', images)
         return character
