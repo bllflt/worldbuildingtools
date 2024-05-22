@@ -33,7 +33,8 @@ class DaoOfCharacterOverViewData():
         try:
             with os.scandir(cls.image_path / name) as it:
                 for file in it:
-                    if bool(re.search('(jpg|png)$', file.name, re.IGNORECASE)):
+                    if bool(re.match(r'(?:.*)\.(?:jpg|png)$', file.name,
+                                     re.IGNORECASE)):
                         images.append(
                             Path(file.path).relative_to(
                                 cls.root_path / 'characters',

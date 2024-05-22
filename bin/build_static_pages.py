@@ -18,7 +18,8 @@ def name_for_sorting(name: str) -> str:
         'Princess(?: Consort)?',
         'Bishop',
         'Queen',
-        'King'
+        'King',
+        'Sir'
     ])
     m = re.match(r'(?:'
                  + royal_title_pattern
