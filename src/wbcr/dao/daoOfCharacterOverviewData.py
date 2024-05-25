@@ -23,7 +23,8 @@ class DaoOfCharacterOverViewData():
     def get_by_name(cls, name) -> Character:
         character = Character(name)
         md = Path(cls.overview_data_path.joinpath(f'{name}.md')).read_text()
-        yml_text = re.search('(?:---)(.*?)(?:---)', md, re.DOTALL | re.MULTILINE)
+        yml_text = re.search('(?:---)(.*?)(?:---)', md,
+                             re.DOTALL | re.MULTILINE)
         if yml_text is not None:
             overview = yaml.safe_load(yml_text.group(1))
             for k in overview:
