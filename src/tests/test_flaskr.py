@@ -89,7 +89,7 @@ class TestFlask:
         response = client.post("/api/v1/character", json={
             "name": 'Graurog',
             "appearance": 'Female Ogrillon (Orc-Ogre)',
-            "background": "",
+            "background": '',
             "roleplaying": []
             })
         assert response.status_code == 200
@@ -137,4 +137,13 @@ class TestFlask:
                  'Loyal and protective',
             ]
             })
-        assert response.status_code == 200 
+        assert response.status_code == 400
+        assert response.json == {
+            'error': {
+                'message': {
+                    'name': [
+                        'Shorter than minimum length 1.',
+                    ],
+                },
+                'type': 'validation',
+            }}

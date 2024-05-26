@@ -1,4 +1,5 @@
 from flask_marshmallow import Marshmallow
+from marshmallow.validate import Length
 
 from flaskr.model import Character, Roleplaying
 
@@ -15,5 +16,6 @@ class CharacterSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Character
         load_instance = True
+    name = ma.auto_field(validate=Length(min=1))
     roleplaying = ma.Pluck(RoleplayingSchema, 'characteristic', many=True)
 

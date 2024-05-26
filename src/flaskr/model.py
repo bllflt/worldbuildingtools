@@ -2,7 +2,7 @@ from typing import List
 from typing import Optional
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, String, CheckConstraint
 from sqlalchemy.orm import (DeclarativeBase, Mapped, MappedAsDataclass,
                             mapped_column, relationship)
 from typing_extensions import Annotated
@@ -20,7 +20,10 @@ class Character(db.Model):
 
     id: Mapped[Annotated[int, mapped_column(
         primary_key=True)]] = mapped_column(init=False)
-    name: Mapped[str]
+    name: Mapped[str] = mapped_column(
+        CheckConstraint("length(trim(name))>0"),
+        nullable=False,
+    )
     appearance: Mapped[Optional[str]]
     background:  Mapped[Optional[str]]
     roleplaying: Mapped[List["Roleplaying"]] = relationship(
