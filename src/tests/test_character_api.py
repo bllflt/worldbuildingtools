@@ -1,6 +1,5 @@
 from flaskr.model import Character, Roleplaying, db
 from sqlalchemy import select
-import pytest
 
 
 class TestCharacterResource:
@@ -90,3 +89,84 @@ class TestCharacterResource:
 
         assert response.status_code == 404
         assert response.json == {'error': {'type': 'Not found'}}
+
+    def test_put(self, app_context, client):
+        with app_context:
+            graurog = Character(name='Fred',
+                                appearance=None,
+                                background=None,
+                                roleplaying=[])
+            cinsora = Character(name="Cinsora",
+                                appearance='Dragonborne',
+                                background=None,
+                                roleplaying=[
+                                    Roleplaying(
+                                        characteristic="Charming but unrefined"
+                                    ),
+                                    Roleplaying(
+                                        characteristic="Collects trinkets"
+                                    )])
+            db.session.add_all([graurog, cinsora])
+
+            response = client.put("/api/v1/characters/1", json={
+                "name": 'Graurog',
+                "appearance": 'Female Ogrillon (Orc-Ogre)',
+                "background": "Complex long story about the travels, ",
+                "roleplaying": [
+                    'Blunt and direct',
+                    'Loyal and protective',
+                ]
+            })
+            assert response.status_code == 200
+
+            db.session.expire_all()
+            got = db.session.scalar(select(Character).where(
+                Character.name == "Graurog"))
+            assert got.background == 'Complex long story about the travels, '
+            assert got.appearance == 'Female Ogrillon (Orc-Ogre)'
+            assert got.roleplaying[0].characteristic == 'Blunt and direct'
+            assert got.roleplaying[1].characteristic == 'Loyal and protective'
+
+    def test_put_deletes_extra_roleplaying(self, app_context, client):
+        with app_context:
+            graurog = Character(
+                name='Graurog',
+                appearance='Female Ogrillon (Orc-Ogre)',
+                background='Cheese',
+                roleplaying=[
+                    Roleplaying(
+                        characteristic='One'),
+                    Roleplaying(
+                        characteristic='Two'),
+                     Roleplaying(
+                         characteristic='Three')
+                ])
+            db.session.add_all([graurog])
+            db.session.commit()
+
+            client.put('/api/v1/characters/1', json={
+                "name": 'Graurog',
+                "appearance": 'Female Ogrillon (Orc-Ogre)',
+                "background": 'Cheese',
+                "roleplaying": ['Four']
+            })
+            db.session.expire_all()
+            graurog = db.session.scalar(select(Character).where(
+                Character.name == 'Graurog'))
+            assert len(graurog.roleplaying) == 1
+            assert graurog.roleplaying[0].characteristic == 'Four'
+
+    def test_put_no_exist(self, app_context, client):
+
+        response = client.put('/api/v1/characters/1', json={
+            "name": 'Graurog',
+            "appearance": 'Female Ogrillon (Orc-Ogre)',
+            "background": 'Cheese',
+            "roleplaying": ['Four']
+        })
+        assert response.status_code == 404
+        assert response.json == {'error': {'type': 'Not found'}}
+
+        got = db.session.scalar(select(Character).where(
+            Character.name == "Graurog"))
+        assert got is None

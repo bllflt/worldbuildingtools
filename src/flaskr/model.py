@@ -26,7 +26,6 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
     cursor.close()
 
 
-
 class Character(db.Model):
     __tablename__ = 'character'
 

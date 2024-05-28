@@ -48,3 +48,29 @@ class Character(Resource):
             return {'error': {
                 'type': 'Not found'
             }}, 404
+
+    def put(self, cid):
+        old = db.session.scalar(select(Model).order_by(Model.id))
+        datum = request.get_json()
+        try:
+            new = CharacterSchema().load(datum)
+        except ValidationError as err:
+            return {'error': {
+                "type": "validation",
+                "message": err.normalized_messages()}
+                }, 400
+        if old:
+            db.session.connection().exec_driver_sql(
+                "DELETE FROM roleplaying WHERE character_id = ?",
+                (old.id,))
+            old.name = new.name
+            old.appearance = new.appearance
+            old.background = new.background
+            old.roleplaying = new.roleplaying
+            db.session.commit()
+        else:
+            return {'error': {
+                'type': 'Not found'
+                }}, 404
+                
+        
