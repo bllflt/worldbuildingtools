@@ -2,7 +2,7 @@ from typing import List
 from typing import Optional
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import ForeignKey, String, CheckConstraint
+from sqlalchemy import ForeignKey, CheckConstraint
 from sqlalchemy.orm import (DeclarativeBase, Mapped, MappedAsDataclass,
                             mapped_column, relationship)
 from typing_extensions import Annotated
@@ -13,6 +13,18 @@ class Base(DeclarativeBase, MappedAsDataclass):
 
 
 db = SQLAlchemy(model_class=Base)
+
+
+from sqlalchemy.engine import Engine
+from sqlalchemy import event
+
+
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
+
 
 
 class Character(db.Model):
@@ -27,7 +39,9 @@ class Character(db.Model):
     appearance: Mapped[Optional[str]]
     background:  Mapped[Optional[str]]
     roleplaying: Mapped[List["Roleplaying"]] = relationship(
-        back_populates="character", default_factory=list
+        back_populates="character", default_factory=list,
+        cascade="all, delete",
+        passive_deletes=True,
     )
 
 
@@ -38,6 +52,7 @@ class Roleplaying(db.Model):
         primary_key=True)] = mapped_column(init=False)
     characteristic: Mapped[str]
     character_id: Annotated[int, mapped_column(
-        ForeignKey("character.id"))] = mapped_column(init=False)
+        ForeignKey("character.id", ondelete="CASCADE")
+        )] = mapped_column(init=False)
     character: Mapped["Character"] = relationship(
         back_populates='roleplaying', default=None)

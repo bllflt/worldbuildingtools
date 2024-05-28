@@ -2,8 +2,9 @@ import os
 
 from flask import Flask
 
-from flaskr.resources.character import CharacterList
+from flaskr.resources.character import Character, CharacterList
 from flask_restful import Api
+
 
 def create_app(test_config=None):
     # create and configure the app
@@ -17,12 +18,13 @@ def create_app(test_config=None):
         pass
 
     from flaskr.model import db
-    from flaskr.schemas.character import ma   
+    from flaskr.schemas.character import ma
 
     db.init_app(app)
     ma.init_app(app)
 
     api = Api(app)
-    api.add_resource(CharacterList, '/api/v1/character')
+    api.add_resource(CharacterList, '/api/v1/characters')
+    api.add_resource(Character, '/api/v1/characters/<cid>')
 
     return app

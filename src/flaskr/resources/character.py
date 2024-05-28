@@ -2,7 +2,7 @@ from flask_restful import Resource
 from flaskr.model import db, Character as Model
 from flaskr.schemas.character import CharacterSchema
 from marshmallow import ValidationError
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from flask import request
 
 
@@ -28,4 +28,23 @@ class CharacterList(Resource):
 
 
 class Character(Resource):
-    pass
+    def get(self, cid):
+        character = db.session.scalar(select(Model).where(Model.id == cid))
+        if character:
+            return CharacterSchema().dump(character)
+        else:
+            return {'error': {
+                'type': 'Not found'
+            }}, 404
+
+    def delete(self, cid):
+        deleted = db.session.execute(delete(Model).where(
+            Model.id == cid).returning(Model.id))
+        found = deleted.one_or_none()
+        deleted.close()
+        db.session.commit()
+
+        if found is None:
+            return {'error': {
+                'type': 'Not found'
+            }}, 404

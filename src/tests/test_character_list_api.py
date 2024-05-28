@@ -1,38 +1,12 @@
 import pytest
-
-from flaskr import create_app
-from flaskr.model import db, Character, Roleplaying
-import json
 from sqlalchemy import select
 
-
-@pytest.fixture()
-def app():
-    app = create_app()
-    yield app
+from flaskr.model import Character, Roleplaying, db
 
 
-@pytest.fixture()
-def client(app):
-    return app.test_client()
+class TestCharacterListResource:
 
-
-@pytest.fixture()
-def runner(app):
-    return app.test_cli_runner()
-
-
-@pytest.fixture()
-def app_context(app):
-    with app.app_context():
-        db.create_all()
-        yield app.app_context()
-        db.drop_all()
-
-
-class TestFlask:
-
-    def test_character_list_get(self, app_context, client):
+    def test_get(self, app_context, client):
         with app_context:
             graurog = Character(name='Graurog',
                                 appearance='Female Ogrillon (Orc-Ogre)',
@@ -56,7 +30,7 @@ class TestFlask:
             db.session.add_all([graurog, cinsora])
             db.session.commit()
 
-            got = json.loads(client.get("/api/v1/character").data.decode())
+            got = client.get("/api/v1/characters").json
 
             assert got == [{
                 'appearance': 'Female Ogrillon (Orc-Ogre)',
@@ -84,9 +58,9 @@ class TestFlask:
         ('appearance', 'Female Ogrillon (Orc-Ogre)'),
         ('background', ''),
         ])
-    def test_character_list_put(self,
-                                app_context, client, attribute, expected):
-        response = client.post("/api/v1/character", json={
+    def test_put(self,
+                 app_context, client, attribute, expected):
+        response = client.post("/api/v1/characters", json={
             "name": 'Graurog',
             "appearance": 'Female Ogrillon (Orc-Ogre)',
             "background": '',
@@ -99,10 +73,9 @@ class TestFlask:
                 Character.name == "Graurog"))
             assert getattr(got, attribute) == expected
 
-    def test_character_list_put_w_roleplaying(self,
-                                              app_context, client):
+    def test_put_w_roleplaying(self, app_context, client):
 
-        response = client.post("/api/v1/character", json={
+        response = client.post("/api/v1/characters", json={
             "name": 'Graurog',
             "appearance": 'Female Ogrillon (Orc-Ogre)',
             "background": "",
@@ -126,9 +99,9 @@ class TestFlask:
                 'Loyal and protective'
             ]
 
-    def test_character_list_put_error(self, app_context, client):
+    def test_put_error(self, app_context, client):
 
-        response = client.post("/api/v1/character", json={
+        response = client.post("/api/v1/characters", json={
             "name": '',
             "appearance": 'Green monkey',
             "background": "Once upon a time",
