@@ -1,4 +1,4 @@
-from flaskr.model import Character, Roleplaying, db
+from flaskr.model import Character, Roleplaying, Image, db
 from sqlalchemy import select
 
 
@@ -37,8 +37,28 @@ class TestCharacterResource:
                 'name': 'Graurog',
                 'roleplaying': [
                     'Blunt and direct',
-                    'Loyal and protective']
+                    'Loyal and protective'],
+                'images': [],
                 }
+
+    def test_get_w_image(self, app_context, client):
+        with app_context:
+            graurog = Character(name='Graurog',
+                                images=[
+                                    Image(url='http://moo1.png'),
+                                    Image(url='http://moo2.png')])
+            db.session.add_all([graurog])
+            db.session.commit()
+
+            response = client.get("/api/v1/characters/1")
+            assert response.json == {
+                'appearance': None,
+                'background': None,
+                'id': 1,
+                'images': ['http://moo1.png', 'http://moo2.png'],
+                'name': 'Graurog',
+                'roleplaying': [],
+            }
 
     def test_get_error_no_exist(self, client):
         response = client.get("/api/v1/characters/1")
@@ -115,7 +135,9 @@ class TestCharacterResource:
                 "roleplaying": [
                     'Blunt and direct',
                     'Loyal and protective',
-                ]
+                ],
+                'images': [],
+
             })
             assert response.status_code == 200
 

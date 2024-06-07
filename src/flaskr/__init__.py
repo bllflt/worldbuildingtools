@@ -5,6 +5,8 @@ from flask import Flask
 from flaskr.resources.character import Character, CharacterList
 from flask_restful import Api
 
+from flaskr.blueprints.images import image
+
 
 def create_app(test_config=None):
     # create and configure the app
@@ -26,5 +28,8 @@ def create_app(test_config=None):
     api = Api(app)
     api.add_resource(CharacterList, '/api/v1/characters')
     api.add_resource(Character, '/api/v1/characters/<cid>')
+
+    app.register_blueprint(image)
+    
 
     return app

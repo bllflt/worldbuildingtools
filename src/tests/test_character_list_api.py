@@ -40,7 +40,8 @@ class TestCharacterListResource:
                 'roleplaying': [
                     'Blunt and direct',
                     'Loyal and protective',
-                    ]
+                    ],
+                'images': [],
                 }, {
                 'appearance': 'Dragonborne',
                 'background': None,
@@ -50,6 +51,7 @@ class TestCharacterListResource:
                    'Charming but unrefined',
                    'Collects trinkets',
                 ],
+                'images': [],
                 }
             ]
 

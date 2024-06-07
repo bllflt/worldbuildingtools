@@ -35,10 +35,15 @@ class Character(db.Model):
         CheckConstraint("length(trim(name))>0"),
         nullable=False,
     )
-    appearance: Mapped[Optional[str]]
-    background:  Mapped[Optional[str]]
+    appearance: Mapped[Optional[str]] = mapped_column(default=None)
+    background:  Mapped[Optional[str]] = mapped_column(default=None)
     roleplaying: Mapped[List["Roleplaying"]] = relationship(
         back_populates="character", default_factory=list,
+        cascade="all, delete",
+        passive_deletes=True,
+    )
+    images: Mapped[List["Image"]] = relationship(
+        default_factory=list,
         cascade="all, delete",
         passive_deletes=True,
     )
@@ -55,3 +60,17 @@ class Roleplaying(db.Model):
         )] = mapped_column(init=False)
     character: Mapped["Character"] = relationship(
         back_populates='roleplaying', default=None)
+
+
+class Image(db.Model):
+    __tablename__ = 'images'
+
+    id: Annotated[int, mapped_column(
+        primary_key=True)] = mapped_column(init=False)
+    character_id: Annotated[int, mapped_column(
+        ForeignKey("character.id", ondelete="SET NULL")
+    )] = mapped_column(init=False, nullable=True)
+    url: Mapped[str] = mapped_column(
+        CheckConstraint("length(trim(url))>0"),
+        nullable=False,
+    )

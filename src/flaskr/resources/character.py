@@ -72,5 +72,3 @@ class Character(Resource):
             return {'error': {
                 'type': 'Not found'
                 }}, 404
-                
-        
