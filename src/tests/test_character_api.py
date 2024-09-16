@@ -46,8 +46,8 @@ class TestCharacterResource:
         with app_context:
             graurog = Character(name='Graurog',
                                 images=[
-                                    Image(url='http://moo1.png'),
-                                    Image(url='http://moo2.png')])
+                                    Image(uri='http://moo1.png'),
+                                    Image(uri='http://moo2.png')])
             db.session.add_all([graurog])
             db.session.commit()
 

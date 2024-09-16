@@ -75,6 +75,6 @@ class Image(db.Model):
         ForeignKey("character.id", ondelete="SET NULL")
     )] = mapped_column(init=False, nullable=True)
     uri: Mapped[str] = mapped_column(
-        CheckConstraint("length(trim(url))>0"),
+        CheckConstraint("length(trim(uri))>0"),
         nullable=False,
     )
