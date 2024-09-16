@@ -10,7 +10,7 @@ class CharacterList(Resource):
 
     def get(self):
         return CharacterSchema(many=True).dump(
-            db.session.scalars(select(Model).order_by(Model.id)).all()
+            db.session.scalars(select(Model).order_by(Model.name)).all()
             )
 
     def post(self):

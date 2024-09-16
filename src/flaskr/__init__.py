@@ -1,6 +1,7 @@
 import os
 
 from flask import Flask
+from flask_cors import CORS
 from flask_restful import Api
 
 import flaskr.config as config
@@ -30,4 +31,5 @@ def create_app(test_config=None):
     api.add_resource(Character, '/api/v1/characters/<cid>')
 
     app.register_blueprint(image)
+    CORS(app)
     return app
