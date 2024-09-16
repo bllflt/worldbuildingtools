@@ -1,17 +1,17 @@
 import os
 
 from flask import Flask
-
-from flaskr.resources.character import Character, CharacterList
 from flask_restful import Api
 
+import flaskr.config as config
 from flaskr.blueprints.images import image
+from flaskr.resources.character import Character, CharacterList
 
 
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
-    app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///green.sqlite"
+    app.config['SQLALCHEMY_DATABASE_URI'] = config.database
 
     # ensure the instance folder exists
     try:
@@ -30,6 +30,4 @@ def create_app(test_config=None):
     api.add_resource(Character, '/api/v1/characters/<cid>')
 
     app.register_blueprint(image)
-    
-
     return app

@@ -12,7 +12,7 @@ def app():
 
 
 @pytest.fixture()
-def client(app)  -> FlaskClient:
+def client(app) -> FlaskClient:
     return app.test_client()
 
 

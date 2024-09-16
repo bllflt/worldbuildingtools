@@ -35,6 +35,7 @@ class TestCharacterResource:
                 'background': None,
                 'id': 1,
                 'name': 'Graurog',
+                'sex': 9,
                 'roleplaying': [
                     'Blunt and direct',
                     'Loyal and protective'],
@@ -55,6 +56,7 @@ class TestCharacterResource:
                 'appearance': None,
                 'background': None,
                 'id': 1,
+                'sex': 9,
                 'images': ['http://moo1.png', 'http://moo2.png'],
                 'name': 'Graurog',
                 'roleplaying': [],

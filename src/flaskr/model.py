@@ -37,6 +37,10 @@ class Character(db.Model):
     )
     appearance: Mapped[Optional[str]] = mapped_column(default=None)
     background:  Mapped[Optional[str]] = mapped_column(default=None)
+    sex: Mapped[Annotated[int,
+                          "ISO/IEC 5218 0 = Not known, 1 = Male, 2 = Female, 9 = Not applicable",
+                          mapped_column()]] = mapped_column(
+        default=9)
     roleplaying: Mapped[List["Roleplaying"]] = relationship(
         back_populates="character", default_factory=list,
         cascade="all, delete",
@@ -70,7 +74,7 @@ class Image(db.Model):
     character_id: Annotated[int, mapped_column(
         ForeignKey("character.id", ondelete="SET NULL")
     )] = mapped_column(init=False, nullable=True)
-    url: Mapped[str] = mapped_column(
+    uri: Mapped[str] = mapped_column(
         CheckConstraint("length(trim(url))>0"),
         nullable=False,
     )

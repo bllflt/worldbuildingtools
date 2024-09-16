@@ -24,4 +24,4 @@ class CharacterSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
     name = ma.auto_field(validate=Length(min=1))
     roleplaying = ma.Pluck(RoleplayingSchema, 'characteristic', many=True)
-    images = ma.Pluck(ImageSchema, 'url', many=True)
+    images = ma.Pluck(ImageSchema, 'uri', many=True)

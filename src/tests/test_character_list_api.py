@@ -11,6 +11,7 @@ class TestCharacterListResource:
             graurog = Character(name='Graurog',
                                 appearance='Female Ogrillon (Orc-Ogre)',
                                 background=None,
+                                sex=2,
                                 roleplaying=[
                                     Roleplaying(
                                         characteristic='Blunt and direct'),
@@ -18,8 +19,9 @@ class TestCharacterListResource:
                                         characteristic='Loyal and protective'),
                                 ])
             cinsora = Character(name="Cinsora",
-                                appearance='Dragonborne',
+                                appearance='Dragonborn',
                                 background=None,
+                                sex=0,
                                 roleplaying=[
                                     Roleplaying(
                                         characteristic="Charming but unrefined"
@@ -37,16 +39,18 @@ class TestCharacterListResource:
                 'background': None,
                 'id': 1,
                 'name': 'Graurog',
+                'sex': 2,
                 'roleplaying': [
                     'Blunt and direct',
                     'Loyal and protective',
                     ],
                 'images': [],
                 }, {
-                'appearance': 'Dragonborne',
+                'appearance': 'Dragonborn',
                 'background': None,
                 'id': 2,
                 'name': 'Cinsora',
+                'sex': 0,
                 'roleplaying': [
                    'Charming but unrefined',
                    'Collects trinkets',
