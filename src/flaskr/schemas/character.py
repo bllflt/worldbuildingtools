@@ -22,6 +22,7 @@ class CharacterSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Character
         load_instance = True
+    id = ma.auto_field(dump_only=True)
     name = ma.auto_field(validate=Length(min=1))
     roleplaying = ma.Pluck(RoleplayingSchema, 'characteristic', many=True)
     images = ma.Pluck(ImageSchema, 'uri', many=True)

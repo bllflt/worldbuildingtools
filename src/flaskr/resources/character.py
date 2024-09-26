@@ -2,15 +2,27 @@ from flask_restful import Resource
 from flaskr.model import db, Character as Model
 from flaskr.schemas.character import CharacterSchema
 from marshmallow import ValidationError
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, text, func
 from flask import request
-
-
+import logging
 class CharacterList(Resource):
 
     def get(self):
+
+        sort_key = request.args.get('sort')
+
+        filter_key = request.args.get('name')
+
+        q = select(Model)
+        if sort_key is not None:
+            q = q.order_by(text('name'))
+        if filter_key is not None:
+            q = q.where(
+                Model.name.icontains(filter_key)
+            )
+       
         return CharacterSchema(many=True).dump(
-            db.session.scalars(select(Model).order_by(Model.id)).all()
+            db.session.scalars(q).all()
             )
 
     def post(self):
@@ -50,23 +62,24 @@ class Character(Resource):
             }}, 404
 
     def put(self, cid):
-        old = db.session.scalar(select(Model).order_by(Model.id))
+        old = db.session.scalar(select(Model).where(Model.id == cid))
         datum = request.get_json()
-        try:
-            new = CharacterSchema().load(datum)
-        except ValidationError as err:
-            return {'error': {
-                "type": "validation",
-                "message": err.normalized_messages()}
-                }, 400
+        
+        # XXX why - should id be in the payload? and why is it so fagile if it is
+        if 'id' in datum:
+            del datum['id']
+
         if old:
             db.session.connection().exec_driver_sql(
                 "DELETE FROM roleplaying WHERE character_id = ?",
                 (old.id,))
-            old.name = new.name
-            old.appearance = new.appearance
-            old.background = new.background
-            old.roleplaying = new.roleplaying
+            try:
+                CharacterSchema().load(datum, instance=old)
+            except ValidationError as err:
+                return {'error': {
+                    "type": "validation",
+                    "message": err.normalized_messages()}
+                    }, 400
             db.session.commit()
         else:
             return {'error': {

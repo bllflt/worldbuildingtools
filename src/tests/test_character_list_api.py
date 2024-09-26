@@ -126,3 +126,28 @@ class TestCharacterListResource:
                 },
                 'type': 'validation',
             }}
+
+    def test_get_sorted_by_name(self, app_context, client):
+        with app_context:
+            a = Character(name="a")
+            b = Character(name="b")
+            c = Character(name="c")
+            db.session.add_all([c, b, a])
+            db.session.commit()
+            got = client.get('/api/v1/characters?sort="name"').json
+            got = list(map(lambda x: x['name'], got))
+            assert got == ['a', 'b', 'c']
+
+    def test_get_by_name(self, app_context, client):
+        with app_context:
+            a = Character(name="a")
+            b = Character(name="b")
+            c = Character(name="c")
+            bill = Character(name="bill")
+            billy = Character(name="billy")
+            ybill = Character(name="ybill")
+            db.session.add_all([c, b, a, billy, bill, ybill])
+            db.session.commit()
+            got = client.get('/api/v1/characters?sort=name&name=bill').json
+            got = list(map(lambda x: x['name'], got))
+            assert got == ['bill', 'billy', 'ybill']
