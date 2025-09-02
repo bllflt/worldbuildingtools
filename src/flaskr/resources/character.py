@@ -2,9 +2,10 @@ from flask_restful import Resource
 from flaskr.model import db, Character as Model
 from flaskr.schemas.character import CharacterSchema
 from marshmallow import ValidationError
-from sqlalchemy import select, delete, text, func
+from sqlalchemy import select, delete, text
 from flask import request
-import logging
+
+
 class CharacterList(Resource):
 
     def get(self):
@@ -20,7 +21,7 @@ class CharacterList(Resource):
             q = q.where(
                 Model.name.icontains(filter_key)
             )
-       
+
         return CharacterSchema(many=True).dump(
             db.session.scalars(q).all()
             )
@@ -64,8 +65,9 @@ class Character(Resource):
     def put(self, cid):
         old = db.session.scalar(select(Model).where(Model.id == cid))
         datum = request.get_json()
-        
-        # XXX why - should id be in the payload? and why is it so fagile if it is
+
+        # XXX why - should id be in the payload? and why is it so fagile if
+        # it is
         if 'id' in datum:
             del datum['id']
 

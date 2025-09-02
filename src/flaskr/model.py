@@ -58,7 +58,10 @@ class Roleplaying(db.Model):
 
     id: Annotated[int, mapped_column(
         primary_key=True)] = mapped_column(init=False)
-    characteristic: Mapped[str]
+    characteristic: Mapped[str] = mapped_column(
+        CheckConstraint("length(trim(characteristic))>0"),
+        nullable=False,
+    )
     character_id: Annotated[int, mapped_column(
         ForeignKey("character.id", ondelete="CASCADE")
         )] = mapped_column(init=False)

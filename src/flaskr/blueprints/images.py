@@ -14,5 +14,4 @@ def show(image_uri):
         return send_file(Path(config.image_dir).joinpath(image_uri),
                          mimetype='image/png')
     except (Exception) as e:
-        return ''
-
+        return '', 404
