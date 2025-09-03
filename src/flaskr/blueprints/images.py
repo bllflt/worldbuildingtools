@@ -4,9 +4,6 @@ from pathlib import Path
 
 image = Blueprint('character_image', __name__)
 
-img_dir = Path(
-    '/Users/joel/Library/Mobile Documents/com~apple~CloudDocs/Covenant of Shifting Lights/World Building/images')
-
 
 @image.route('/images/<image_uri>')
 def show(image_uri):

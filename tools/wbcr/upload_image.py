@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-from sqlalchemy import create_engine, text
 import os
 import re
-from  pathlib import Path
-from uuid import uuid4
 import shutil
+from pathlib import Path
+from uuid import uuid4
+
+from sqlalchemy import create_engine, text
 
 img_dir = Path(
     '/Users/joel/Library/Mobile Documents/com~apple~CloudDocs/Covenant of Shifting Lights/World Building/images')

@@ -1,5 +1,6 @@
 import os
 
+from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
 from flask_restful import Api
@@ -11,6 +12,8 @@ from flaskr.resources.character import Character, CharacterList
 
 def create_app(test_config=None):
     # create and configure the app
+    load_dotenv()
+
     app = Flask(__name__, instance_relative_config=True)
     app.config['SQLALCHEMY_DATABASE_URI'] = config.database
 
