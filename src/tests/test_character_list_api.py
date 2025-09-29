@@ -151,3 +151,26 @@ class TestCharacterListResource:
             got = client.get('/api/v1/characters?sort=name&name=bill').json
             got = list(map(lambda x: x['name'], got))
             assert got == ['bill', 'billy', 'ybill']
+
+    def test_get_fields(self, app_context, client):
+        with app_context:
+            a = Character(name="a", appearance="app_a", background="bg_a")
+            b = Character(name="b", appearance="app_b", background="bg_b")
+            c = Character(name="c", appearance="app_c", background="bg_c")
+            db.session.add_all([c, b, a])
+            db.session.commit()
+            got = client.get('/api/v1/characters?fields=id,name').json
+            assert got == [
+                {
+                    'id': 1,
+                    'name': 'c'
+                },
+                {
+                    'id': 2,
+                    'name': 'b'
+                },
+                {
+                    'id': 3,
+                    'name': 'a'
+                }
+            ]

@@ -14,7 +14,22 @@ class CharacterList(Resource):
 
         filter_key = request.args.get('name')
 
+        fields_key = request.args.get('fields')
+
         q = select(Model)
+        if fields_key is not None:
+            try:
+                fields = set(fields_key.split(','))
+                CharacterSchema(only=fields)
+            except ValueError:
+                return {'error': {
+                    'type': 'Bad Request',
+                    'message': f'Invalid fields: {fields_key}'
+                }}, 400
+
+            q = q.with_only_columns(*[getattr(Model, field)
+                                      for field in fields])
+
         if sort_key is not None:
             q = q.order_by(text('name'))
         if filter_key is not None:
@@ -23,7 +38,8 @@ class CharacterList(Resource):
             )
 
         return CharacterSchema(many=True).dump(
-            db.session.scalars(q).all()
+           db.session.scalars(q).all() if fields_key is None
+           else db.session.execute(q).all()
             )
 
     def post(self):
