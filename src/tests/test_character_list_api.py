@@ -72,7 +72,17 @@ class TestCharacterListResource:
             "background": '',
             "roleplaying": []
             })
-        assert response.status_code == 200
+        assert response.status_code == 201
+
+        assert response.json == {
+            'id': 1,
+            'name': 'Graurog',
+            'appearance': 'Female Ogrillon (Orc-Ogre)',
+            'background': '',
+            'roleplaying': [],
+            'images': [],
+            'sex': 9
+        }
 
         with app_context:
             got = db.session.scalar(select(Character).where(
@@ -90,7 +100,7 @@ class TestCharacterListResource:
                  'Loyal and protective',
             ]
             })
-        assert response.status_code == 200
+        assert response.status_code == 201
 
         with app_context:
             got_graurog = db.session.scalar(select(Character).where(

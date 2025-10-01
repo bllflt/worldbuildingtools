@@ -54,6 +54,7 @@ class CharacterList(Resource):
 
         db.session.add(new_character)
         db.session.commit()
+        return CharacterSchema().dump(new_character), 201
 
 
 class Character(Resource):
