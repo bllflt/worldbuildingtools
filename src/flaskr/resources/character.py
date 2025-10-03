@@ -83,11 +83,6 @@ class Character(Resource):
         old = db.session.scalar(select(Model).where(Model.id == cid))
         datum = request.get_json()
 
-        # XXX why - should id be in the payload? and why is it so fagile if
-        # it is
-        if 'id' in datum:
-            del datum['id']
-
         if old:
             db.session.connection().exec_driver_sql(
                 "DELETE FROM roleplaying WHERE character_id = ?",
