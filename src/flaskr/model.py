@@ -2,7 +2,7 @@ from typing import List
 from typing import Optional
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import ForeignKey, CheckConstraint
+from sqlalchemy import ForeignKey, CheckConstraint, UniqueConstraint
 from sqlalchemy.orm import (DeclarativeBase, Mapped, MappedAsDataclass,
                             mapped_column, relationship)
 from typing_extensions import Annotated
@@ -21,9 +21,17 @@ from sqlalchemy import event
 
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
+    # the sqlite3 driver will not set PRAGMA foreign_keys
+    # if autocommit=False; set to True temporarily
+    ac = dbapi_connection.autocommit
+    dbapi_connection.autocommit = True
+
     cursor = dbapi_connection.cursor()
     cursor.execute("PRAGMA foreign_keys=ON")
     cursor.close()
+
+    # restore previous autocommit setting
+    dbapi_connection.autocommit = ac
 
 
 class Character(db.Model):
@@ -38,9 +46,13 @@ class Character(db.Model):
     appearance: Mapped[Optional[str]] = mapped_column(default=None)
     background:  Mapped[Optional[str]] = mapped_column(default=None)
     sex: Mapped[Annotated[int,
-                          "ISO/IEC 5218 0 = Not known, 1 = Male, 2 = Female, 9 = Not applicable",
                           mapped_column()]] = mapped_column(
         default=9)
+    # "ISO/IEC 5218
+    UNKNOWN = 0
+    MALE = 1
+    FEMALE = 2
+    NA = 9
     roleplaying: Mapped[List["Roleplaying"]] = relationship(
         back_populates="character", default_factory=list,
         cascade="all, delete",
@@ -63,7 +75,8 @@ class Roleplaying(db.Model):
         nullable=False,
     )
     character_id: Annotated[int, mapped_column(
-        ForeignKey("character.id", ondelete="CASCADE")
+        ForeignKey("character.id", ondelete="CASCADE"),
+        nullable=False
         )] = mapped_column(init=False)
     character: Mapped["Character"] = relationship(
         back_populates='roleplaying', default=None)
@@ -81,3 +94,56 @@ class Image(db.Model):
         CheckConstraint("length(trim(uri))>0"),
         nullable=False,
     )
+
+
+class Partnership(db.Model):
+    __tablename__ = 'partnerships'
+
+    id: Annotated[int, mapped_column(
+        primary_key=True)] = mapped_column(init=False)
+    type: Annotated[int, mapped_column()] = mapped_column()
+    MARRIAGE = 1
+    COHABITATION = 2
+    ENGAGEMENT = 3
+    LIAISON = 4
+    CONCUBINAGE = 5
+    OTHER = 99
+    start_date: Mapped[Optional[str]] = mapped_column(default=None)
+    end_date: Mapped[Optional[str]] = mapped_column(default=None)
+    is_primary: Mapped[Optional[bool]] = mapped_column(default=False)
+
+
+class PartnershipParticipant(db.Model):
+    __tablename__ = 'partnership_participants'
+    __table_args__ = (UniqueConstraint('partnership_id', 'character_id',
+                                       name='_partnership_character_uc'),)
+
+    partnership_id: Annotated[int, mapped_column(
+        ForeignKey("partnerships.id", ondelete="CASCADE"),
+        nullable=False,
+        primary_key=True,
+    )] = mapped_column()
+    character_id: Annotated[int, mapped_column(
+        ForeignKey("character.id", ondelete="CASCADE"),
+        nullable=False,
+        primary_key=True,
+    )] = mapped_column()
+    role: Mapped[Optional[str]] = mapped_column(default=None)
+
+
+
+class Offspring(db.Model):
+    __tablename__ = 'offspring'
+    __table_args__ = (UniqueConstraint('partnership_id', 'child_id',
+                                       name='_partnership_child_uc'),)
+
+    id: Annotated[int, mapped_column(
+        primary_key=True)] = mapped_column(init=False)
+    partnership_id: Annotated[int, mapped_column(
+        ForeignKey("partnerships.id", ondelete="CASCADE"),
+        nullable=False
+    )] = mapped_column()
+    child_id: Annotated[int, mapped_column(
+        ForeignKey("character.id", ondelete="CASCADE"),
+        nullable=False
+    )] = mapped_column()
