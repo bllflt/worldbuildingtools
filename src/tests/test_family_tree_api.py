@@ -2,122 +2,154 @@ import pytest
 from flaskr.model import Character, Partnership
 
 
-@pytest.fixture()
-def family_tree_setup(client):
-    father_id = client.post("/api/v1/characters", json={
+class TestFamilyTreeResource:
+    def family_tree_setup(self, client):
+        father_id = client.post("/api/v1/characters", json={
             "name": 'Father',
             "sex": Character.MALE
             }).json['id']
-    mother_id = client.post("/api/v1/characters", json={
+        mother_id = client.post("/api/v1/characters", json={
             "name": 'Mother',
             "sex": Character.FEMALE
             }).json['id']
-    child1_id = client.post("/api/v1/characters", json={
-            "name": 'Child1'
+        child1_id = client.post("/api/v1/characters", json={
+            "name": 'Child1',
+            "sex": Character.UNKNOWN
             }).json['id']
-    child2_id = client.post("/api/v1/characters", json={
-            "name": 'Child2'
+        child2_id = client.post("/api/v1/characters", json={
+            "name": 'Child2',
+            "sex": Character.UNKNOWN,
             }).json['id']
-    unrelated_id = client.post("/api/v1/characters", json={
+        unrelated_id = client.post("/api/v1/characters", json={
             "name": 'Unrelated'
             }).json['id']
-    partnership_id = client.post("/api/v1/partnerships", json={
+        partnership_id = client.post("/api/v1/partnerships", json={
             "type": Partnership.MARRIAGE,
-            })
-    client.post(f"/api/v1/partnerships/{partnership_id}/participants", json=[
-            {'character_id': father_id}, {'character_id': mother_id}
-            ])
- #   client.post(f"/api/v1/partnerships/{partnership_id}/offspring", json=[
-  #      {'character_id': child1_id}, {'character_id': child2_id}
-  #      ])
-    return {
-        "father_id": father_id,
-        "mother_id": mother_id,
-        "child1_id": child1_id,
-        "child2_id": child2_id,
-        "unrelated_id": unrelated_id,
-        "partnership_id": partnership_id
-    }
+            }).json['id']
+        client.put(
+            f"/api/v1/partnerships/{partnership_id}/participants/{father_id}",
+            json={})
+        client.put(
+            f"/api/v1/partnerships/{partnership_id}/participants/{mother_id}",
+            json={})
+        client.put(
+            f"/api/v1/partnerships/{partnership_id}/offspring/{child1_id}",
+            json={})
+        client.put(
+            f"/api/v1/partnerships/{partnership_id}/offspring/{child2_id}",
+            json={})
+        return {
+            "father_id": father_id,
+            "mother_id": mother_id,
+            "child1_id": child1_id,
+            "child2_id": child2_id,
+            "unrelated_id": unrelated_id,
+            "partnership_id": partnership_id
+        }
 
-
-class TestFamilyTreeResource:
-    def test_partnershiop(self, app_context, client):
+    def test_partnership(self, app_context, client):
         with app_context:
-
-            father_id = client.post("/api/v1/characters", json={
-                "name": 'Father',
-                "sex": Character.MALE
-                }).json['id']
-            mother_id = client.post("/api/v1/characters", json={
-                "name": 'Mother',
-                "sex": Character.FEMALE
-                }).json['id']
-            partnership_id = client.post("/api/v1/partnerships", json={
-                "type": Partnership.MARRIAGE}).json['id']
-            resp = client.get(f'/api/v1/partnerships/{partnership_id}')
+            ts = self.family_tree_setup(client)
+            resp = client.get(f'/api/v1/partnerships/{ts['partnership_id']}')
+            assert resp.status_code == 200
             assert resp.json == {
-                    'id': 1,
-                    'type': Partnership.MARRIAGE, 
+                    'id': ts['partnership_id'],
+                    'type': Partnership.MARRIAGE,
                     'is_primary': False,
                     'start_date': None,
                     'end_date': None,
             }
-            resp = client.post('/api/v1/partnerships/1/participants', json=[
-                {"character_id": father_id},
-                {"character_id": mother_id}
-                ])
-            resp = client.get('/api/v1/partnerships/1/participants')
-            assert resp.json == [
-                {'character_id': father_id, 'role': None},
-                {'character_id': mother_id, 'role': None}
-            ]
-    
-            
 
-    def test_get_immediate_family(self, app_context, client):
+    def test_partnership_particiants(self, app_context, client):
         with app_context:
-            father_id = client.post("/api/v1/characters", json={
-                "name": 'Father',
-                "sex": Character.MALE
-            }).json['id']
-            mother_id = client.post("/api/v1/characters", json={
-                "name": 'Mother',
-                "sex": Character.FEMALE
-            }).json['id']
-            child1_id = client.post("/api/v1/characters", json={
-                "name": 'Child1'
-            }).json['id']
-            child2_id = client.post("/api/v1/characters", json={
-                "name": 'Child2'
-            }).json['id']
-            unrelated_id = client.post("/api/v1/characters", json={
-                "name": 'Unrelated'
-            }).json['id']
-            partnership_id = client.post("/api/v1/partnerships", json={
-                "type": Partnership.MARRIAGE,
-            }).json['id']
-            client.post(f"/api/v1/partnerships/{partnership_id}/participants", json=[
-                {'character_id': father_id}, {'character_id': mother_id}
-            ])
+            ts = self.family_tree_setup(client)
+            resp = client.get('/api/v1/partnerships/1/participants')
+            assert resp.status_code == 200
+            assert resp.json == [
+                {'character_id': ts['father_id'], 'role': None},
+                {'character_id': ts['mother_id'], 'role': None}
+            ]
 
-
-
-
-
+    def test_get_character_partners_father(self, app_context, client):
+        with app_context:
+            ts = self.family_tree_setup(client)
             response = client.get(
-                f"/api/v1/characters/{father_id}/partners"
+                f"/api/v1/characters/{ts['father_id']}/partners"
                 )
             assert response.status_code == 200
             assert response.json == [{
-                'id': partnership_id,
+                'id': ts['partnership_id'],
                 'partnership_type': Partnership.MARRIAGE,
                 'start_date': None,
                 'end_date': None,
                 'is_primary': False,
                 'spouses': [{
-                    'id': mother_id,
+                    'id': ts['mother_id'],
                     'name': 'Mother',
                     'sex': Character.FEMALE
                 }]
             }]
 
+    def test_get_character_partners_mother(self, app_context, client):
+        with app_context:
+            ts = self.family_tree_setup(client)
+            response = client.get(
+                f"/api/v1/characters/{ts['mother_id']}/partners"
+                )
+            assert response.json == [{
+                'id': ts['partnership_id'],
+                'partnership_type': Partnership.MARRIAGE,
+                'start_date': None,
+                'end_date': None,
+                'is_primary': False,
+                'spouses': [{
+                    'id': ts['father_id'],
+                    'name': 'Father',
+                    'sex': Character.MALE
+                }]
+            }]
+
+    def test_partnerships_offspring(self, app_context, client):
+        with app_context:
+            ts = self.family_tree_setup(client)
+            response = client.put(
+                f"/api/v1/partnerships/{ts['partnership_id']}/offspring/{ts['unrelated_id']}")
+            assert response.status_code == 200
+            response = client.get(
+                f"/api/v1/partnerships/{ts['partnership_id']}/offspring")
+            assert response.json == [
+                {'character_id': ts['child1_id']},
+                {'character_id': ts['child2_id']}, 
+                {'character_id': ts['unrelated_id']}
+            ]
+
+    def test_character_degree_connections(self, app_context, client):
+        with app_context:
+            ts = self.family_tree_setup(client)
+            response = client.get(
+                f"/api/v1/characters/{ts['father_id']}/connections?degree=1"
+            )
+            items = response.json
+            for x in [
+                {'id': ts['father_id'], 'label': 'Father',
+                 'gender': Character.MALE},
+                {'id': ts['mother_id'], 'label': 'Mother',
+                 'gender': Character.FEMALE},
+                {'id': ts['child1_id'], 'label': 'Child1',
+                 'gender': Character.UNKNOWN},
+                {'id': ts['child2_id'], 'label': 'Child2',
+                 'gender': Character.UNKNOWN},
+                {'id': f'p{ts['partnership_id']}',
+                 'type': f'{Partnership.MARRIAGE}'},
+                {'source': ts['father_id'],
+                 'target': f'p{ts['partnership_id']}',
+                 'type': Partnership.MARRIAGE},
+                {'source': ts['mother_id'],
+                 'target': f'p{ts['partnership_id']}',
+                 'type': Partnership.MARRIAGE},
+                {'source': f'p{ts['partnership_id']}',
+                 'target': ts['child1_id'], 'type': 'parent_child'},
+                {'source': f'p{ts['partnership_id']}', 
+                 'target': ts['child2_id'], 'type': 'parent_child'}
+                 ]:
+                assert {'data': x} in items, f"{x} not found"

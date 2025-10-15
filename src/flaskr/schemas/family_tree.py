@@ -16,6 +16,7 @@ class OffspringSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Offspring
         load_instance = True
+    character_id = ma.auto_field(required=True)
 
 
 class PartnershipSchema(ma.SQLAlchemyAutoSchema):

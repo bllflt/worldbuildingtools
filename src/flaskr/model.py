@@ -131,19 +131,18 @@ class PartnershipParticipant(db.Model):
     role: Mapped[Optional[str]] = mapped_column(default=None)
 
 
-
 class Offspring(db.Model):
     __tablename__ = 'offspring'
-    __table_args__ = (UniqueConstraint('partnership_id', 'child_id',
+    __table_args__ = (UniqueConstraint('partnership_id', 'character_id',
                                        name='_partnership_child_uc'),)
 
-    id: Annotated[int, mapped_column(
-        primary_key=True)] = mapped_column(init=False)
     partnership_id: Annotated[int, mapped_column(
         ForeignKey("partnerships.id", ondelete="CASCADE"),
-        nullable=False
+        nullable=False,
+        primary_key=True,
     )] = mapped_column()
-    child_id: Annotated[int, mapped_column(
+    character_id: Annotated[int, mapped_column(
         ForeignKey("character.id", ondelete="CASCADE"),
-        nullable=False
+        nullable=False,
+        primary_key=True
     )] = mapped_column()
