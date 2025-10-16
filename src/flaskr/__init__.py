@@ -5,22 +5,22 @@ from flask import Flask
 from flask_cors import CORS
 from flask_restful import Api
 
-import flaskr.config as config
 from flaskr.blueprints.images import image
+from flaskr.config import Config
 from flaskr.resources.character import Character, CharacterList
-from flaskr.resources.character_partners import CharacterPartnersResource
 from flaskr.resources.character_connections import CharacterConnections
-from flaskr.resources.partnership import Partnership, PartnershipList
+from flaskr.resources.character_partners import CharacterPartnersResource
 from flaskr.resources.offspring import Offspring, OffspringList
 from flaskr.resources.partners import Partners, PartnersList
+from flaskr.resources.partnership import Partnership, PartnershipList
 
 
-def create_app(test_config=None):
+def create_app():
     # create and configure the app
     load_dotenv()
 
     app = Flask(__name__, instance_relative_config=True)
-    app.config['SQLALCHEMY_DATABASE_URI'] = config.database
+    app.config['SQLALCHEMY_DATABASE_URI'] = Config.database
 
     # ensure the instance folder exists
     try:
@@ -28,6 +28,7 @@ def create_app(test_config=None):
     except OSError:
         pass
 
+    # pylint: disable=import-outside-toplevel
     from flaskr.model import db
     from flaskr.schemas.character import ma
 
@@ -39,7 +40,7 @@ def create_app(test_config=None):
     api.add_resource(Character, '/api/v1/characters/<cid>')
     api.add_resource(CharacterPartnersResource,
                      '/api/v1/characters/<cid>/partners')
-    api.add_resource(CharacterConnections, 
+    api.add_resource(CharacterConnections,
                      '/api/v1/characters/<cid>/connections')
 
     api.add_resource(PartnershipList, '/api/v1/partnerships')

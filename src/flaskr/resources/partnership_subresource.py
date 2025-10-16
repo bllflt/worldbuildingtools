@@ -1,9 +1,9 @@
 from flask import request
-from flaskr.resources.crud_resource import GroupAPI, ItemAPI
 from marshmallow import ValidationError
-from sqlalchemy import select, delete
+from sqlalchemy import delete, select
 
 from flaskr.model import Character, Partnership, db
+from flaskr.resources.crud_resource import GroupAPI, ItemAPI
 
 
 class SubResourceList(GroupAPI):
@@ -57,13 +57,12 @@ class SubResourceItem(ItemAPI):
         )).scalar()
         if old:
             return None, 409
-        else:
-            new_item = self.model(
-                partnership_id=pid,
-                character_id=cid
-            )
-            db.session.add(new_item)
-            db.session.commit()
+        new_item = self.model(
+            partnership_id=pid,
+            character_id=cid
+        )
+        db.session.add(new_item)
+        db.session.commit()
 
     def delete(self, pid, cid):
         deleted = db.session.execute(delete(self.model).where(
@@ -75,6 +74,5 @@ class SubResourceItem(ItemAPI):
             return {'error': {
                 'type': 'Not found'
             }}, 404
-        else:
-            deleted.close()
+        deleted.close()
         db.session.commit()

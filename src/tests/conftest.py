@@ -1,8 +1,8 @@
 import pytest
+from flask.testing import FlaskClient
 
 from flaskr import create_app
 from flaskr.model import db
-from flask.testing import FlaskClient
 
 
 @pytest.fixture()

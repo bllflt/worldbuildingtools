@@ -1,8 +1,7 @@
-from typing import List
-from typing import Optional
+from typing import List, Optional
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import ForeignKey, CheckConstraint, UniqueConstraint
+from sqlalchemy import CheckConstraint, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import (DeclarativeBase, Mapped, MappedAsDataclass,
                             mapped_column, relationship)
 from typing_extensions import Annotated
@@ -14,13 +13,12 @@ class Base(DeclarativeBase, MappedAsDataclass):
 
 db = SQLAlchemy(model_class=Base)
 
-
-from sqlalchemy.engine import Engine
-from sqlalchemy import event
+from sqlalchemy import event          # pylint: disable=wrong-import-position
+from sqlalchemy.engine import Engine  # pylint: disable=wrong-import-position
 
 
 @event.listens_for(Engine, "connect")
-def set_sqlite_pragma(dbapi_connection, connection_record):
+def set_sqlite_pragma(dbapi_connection, _connection_record):
     # the sqlite3 driver will not set PRAGMA foreign_keys
     # if autocommit=False; set to True temporarily
     ac = dbapi_connection.autocommit

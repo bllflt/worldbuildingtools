@@ -1,6 +1,7 @@
 from flask_restful import Resource
-from flaskr.model import db
 from sqlalchemy import text
+
+from flaskr.model import db
 
 
 class CharacterConnections(Resource):

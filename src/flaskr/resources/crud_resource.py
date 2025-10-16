@@ -1,9 +1,10 @@
-from flask_restful import Resource
-from sqlalchemy import select, delete
-from flaskr.model import db
-from marshmallow import Schema, ValidationError
 from flask import request
+from flask_restful import Resource
+from marshmallow import Schema, ValidationError
+from sqlalchemy import delete, select
 from sqlalchemy.orm import DeclarativeBase
+
+from flaskr.model import db
 
 
 class GroupAPI(Resource):
@@ -36,10 +37,7 @@ class ItemAPI(Resource):
             self.model).where(self.model.id == id))
         if item is not None:
             return self.schema().dump(item)
-        else:
-            return {'error': {
-                'type': 'Not found'
-            }}, 404
+        return {'error': {'type': 'Not found'}}, 404
 
     def delete(self, item_id):
         deleted = db.session.execute(delete(self.model).where(

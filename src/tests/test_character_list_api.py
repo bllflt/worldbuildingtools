@@ -116,26 +116,24 @@ class TestCharacterListResource:
             ]
 
     def test_put_error(self, app_context, client):
-
-        response = client.post("/api/v1/characters", json={
-            "name": '',
-            "appearance": 'Green monkey',
-            "background": "Once upon a time",
-            "roleplaying": [
-                 'Blunt and direct',
-                 'Loyal and protective',
-            ]
-            })
-        assert response.status_code == 400
-        assert response.json == {
-            'error': {
-                'message': {
-                    'name': [
-                        'Shorter than minimum length 1.',
-                    ],
-                },
-                'type': 'validation',
-            }}
+        with app_context:
+            response = client.post("/api/v1/characters", json={
+                "name": '',
+                "appearance": 'Green monkey',
+                "background": "Once upon a time",
+                "roleplaying": [
+                    'Blunt and direct',
+                    'Loyal and protective',
+                ]
+                })
+            assert response.status_code == 400
+            assert response.json == {
+                'error': {
+                    'message': {
+                       'name': ['Shorter than minimum length 1.',],
+                    },
+                    'type': 'validation',
+                }}
 
     def test_get_sorted_by_name(self, app_context, client):
         with app_context:

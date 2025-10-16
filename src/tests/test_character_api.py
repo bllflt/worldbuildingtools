@@ -1,5 +1,6 @@
-from flaskr.model import Character, Roleplaying, Image, db
 from sqlalchemy import select
+
+from flaskr.model import Character, Image, Roleplaying, db
 
 
 class TestCharacterResource:
@@ -181,16 +182,16 @@ class TestCharacterResource:
             assert graurog.roleplaying[0].characteristic == 'Four'
 
     def test_put_no_exist(self, app_context, client):
+        with app_context:
+            response = client.put('/api/v1/characters/1', json={
+                "name": 'Graurog',
+                "appearance": 'Female Ogrillon (Orc-Ogre)',
+                "background": 'Cheese',
+                "roleplaying": ['Four']
+            })
+            assert response.status_code == 404
+            assert response.json == {'error': {'type': 'Not found'}}
 
-        response = client.put('/api/v1/characters/1', json={
-            "name": 'Graurog',
-            "appearance": 'Female Ogrillon (Orc-Ogre)',
-            "background": 'Cheese',
-            "roleplaying": ['Four']
-        })
-        assert response.status_code == 404
-        assert response.json == {'error': {'type': 'Not found'}}
-
-        got = db.session.scalar(select(Character).where(
-            Character.name == "Graurog"))
-        assert got is None
+            got = db.session.scalar(select(Character).where(
+                Character.name == "Graurog"))
+            assert got is None

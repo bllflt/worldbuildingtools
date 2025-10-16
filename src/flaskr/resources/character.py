@@ -1,9 +1,11 @@
-from flask_restful import Resource
-from flaskr.model import db, Character as Model
-from flaskr.schemas.character import CharacterSchema
-from marshmallow import ValidationError
-from sqlalchemy import select, delete, text
 from flask import request
+from flask_restful import Resource
+from marshmallow import ValidationError
+from sqlalchemy import delete, select, text
+
+from flaskr.model import Character as Model
+from flaskr.model import db
+from flaskr.schemas.character import CharacterSchema
 
 
 class CharacterList(Resource):
@@ -62,10 +64,7 @@ class Character(Resource):
         character = db.session.scalar(select(Model).where(Model.id == cid))
         if character:
             return CharacterSchema().dump(character)
-        else:
-            return {'error': {
-                'type': 'Not found'
-            }}, 404
+        return {'error': {'type': 'Not found'}}, 404
 
     def delete(self, cid):
         deleted = db.session.execute(delete(Model).where(

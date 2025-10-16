@@ -119,7 +119,7 @@ class TestFamilyTreeResource:
                 f"/api/v1/partnerships/{ts['partnership_id']}/offspring")
             assert response.json == [
                 {'character_id': ts['child1_id']},
-                {'character_id': ts['child2_id']}, 
+                {'character_id': ts['child2_id']},
                 {'character_id': ts['unrelated_id']}
             ]
 
@@ -149,7 +149,7 @@ class TestFamilyTreeResource:
                  'type': Partnership.MARRIAGE},
                 {'source': f'p{ts['partnership_id']}',
                  'target': ts['child1_id'], 'type': 'parent_child'},
-                {'source': f'p{ts['partnership_id']}', 
+                {'source': f'p{ts['partnership_id']}',
                  'target': ts['child2_id'], 'type': 'parent_child'}
                  ]:
                 assert {'data': x} in items, f"{x} not found"

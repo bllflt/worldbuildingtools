@@ -1,6 +1,7 @@
 from flask_restful import Resource
-from flaskr.model import db, Character, Partnership, PartnershipParticipant
 from sqlalchemy import select
+
+from flaskr.model import Character, Partnership, PartnershipParticipant, db
 
 
 class CharacterPartnersResource(Resource):
@@ -39,7 +40,7 @@ class CharacterPartnersResource(Resource):
             })
 
         return result, 200
-    
+
 
 class CharacterChildrenResource(Resource):
     def get(self, cid):
