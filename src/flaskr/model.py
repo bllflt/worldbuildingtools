@@ -13,7 +13,7 @@ class Base(DeclarativeBase, MappedAsDataclass):
 
 db = SQLAlchemy(model_class=Base)
 
-from sqlalchemy import event          # pylint: disable=wrong-import-position
+from sqlalchemy import event  # pylint: disable=wrong-import-position
 from sqlalchemy.engine import Engine  # pylint: disable=wrong-import-position
 
 
@@ -101,10 +101,11 @@ class Partnership(db.Model):
         primary_key=True)] = mapped_column(init=False)
     type: Annotated[int, mapped_column()] = mapped_column()
     MARRIAGE = 1
-    COHABITATION = 2
-    ENGAGEMENT = 3
-    LIAISON = 4
-    CONCUBINAGE = 5
+    CONCUBINAGE = 2
+    COHABITATION = 3
+    ENGAGEMENT = 4
+    LIAISON = 5
+    
     OTHER = 99
     start_date: Mapped[Optional[str]] = mapped_column(default=None)
     end_date: Mapped[Optional[str]] = mapped_column(default=None)

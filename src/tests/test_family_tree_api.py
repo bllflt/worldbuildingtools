@@ -1,4 +1,5 @@
 import pytest
+
 from flaskr.model import Character, Partnership
 
 
@@ -70,45 +71,6 @@ class TestFamilyTreeResource:
                 {'character_id': ts['mother_id'], 'role': None}
             ]
 
-    def test_get_character_partners_father(self, app_context, client):
-        with app_context:
-            ts = self.family_tree_setup(client)
-            response = client.get(
-                f"/api/v1/characters/{ts['father_id']}/partners"
-                )
-            assert response.status_code == 200
-            assert response.json == [{
-                'id': ts['partnership_id'],
-                'partnership_type': Partnership.MARRIAGE,
-                'start_date': None,
-                'end_date': None,
-                'is_primary': False,
-                'spouses': [{
-                    'id': ts['mother_id'],
-                    'name': 'Mother',
-                    'sex': Character.FEMALE
-                }]
-            }]
-
-    def test_get_character_partners_mother(self, app_context, client):
-        with app_context:
-            ts = self.family_tree_setup(client)
-            response = client.get(
-                f"/api/v1/characters/{ts['mother_id']}/partners"
-                )
-            assert response.json == [{
-                'id': ts['partnership_id'],
-                'partnership_type': Partnership.MARRIAGE,
-                'start_date': None,
-                'end_date': None,
-                'is_primary': False,
-                'spouses': [{
-                    'id': ts['father_id'],
-                    'name': 'Father',
-                    'sex': Character.MALE
-                }]
-            }]
-
     def test_partnerships_offspring(self, app_context, client):
         with app_context:
             ts = self.family_tree_setup(client)
@@ -153,3 +115,20 @@ class TestFamilyTreeResource:
                  'target': ts['child2_id'], 'type': 'parent_child'}
                  ]:
                 assert {'data': x} in items, f"{x} not found"
+
+    def test_character_connections_ng(self, app_context, client):
+        with app_context:
+            ts = self.family_tree_setup(client)
+            response = client.get(
+                f"/api/v1/characters/{ts['father_id']}/connections2?degree=1"
+            )
+            items = response.json
+            assert items == [
+                { 'type': Partnership.MARRIAGE, 'id': ts["partnership_id"],
+                   'with': [{'id': ts['mother_id'], 'name': 'Mother', 'sex': Character.FEMALE}],
+                   'children': [
+                       {'id': ts['child1_id'], 'name': 'Child1', 'sex': Character.UNKNOWN},
+                       {'id': ts['child2_id'], 'name': 'Child2', 'sex': Character.UNKNOWN}
+                   ]
+                }
+            ]   

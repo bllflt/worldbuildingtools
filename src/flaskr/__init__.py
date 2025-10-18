@@ -13,6 +13,7 @@ from flaskr.resources.character_partners import CharacterPartnersResource
 from flaskr.resources.offspring import Offspring, OffspringList
 from flaskr.resources.partners import Partners, PartnersList
 from flaskr.resources.partnership import Partnership, PartnershipList
+from flaskr.resources.twist import CharacterConnections2
 
 
 def create_app():
@@ -42,6 +43,8 @@ def create_app():
                      '/api/v1/characters/<cid>/partners')
     api.add_resource(CharacterConnections,
                      '/api/v1/characters/<cid>/connections')
+    api.add_resource(CharacterConnections2,
+                     '/api/v1/characters/<cid>/connections2')
 
     api.add_resource(PartnershipList, '/api/v1/partnerships')
     api.add_resource(Partnership, '/api/v1/partnerships/<id>')
