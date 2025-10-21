@@ -92,40 +92,11 @@ class TestFamilyTreeResource:
                 f"/api/v1/characters/{ts['father_id']}/connections?degree=1"
             )
             items = response.json
-            for x in [
-                {'id': ts['father_id'], 'label': 'Father',
-                 'gender': Character.MALE},
-                {'id': ts['mother_id'], 'label': 'Mother',
-                 'gender': Character.FEMALE},
-                {'id': ts['child1_id'], 'label': 'Child1',
-                 'gender': Character.UNKNOWN},
-                {'id': ts['child2_id'], 'label': 'Child2',
-                 'gender': Character.UNKNOWN},
-                {'id': f'p{ts['partnership_id']}',
-                 'type': f'{Partnership.MARRIAGE}'},
-                {'source': ts['father_id'],
-                 'target': f'p{ts['partnership_id']}',
-                 'type': Partnership.MARRIAGE},
-                {'source': ts['mother_id'],
-                 'target': f'p{ts['partnership_id']}',
-                 'type': Partnership.MARRIAGE},
-                {'source': f'p{ts['partnership_id']}',
-                 'target': ts['child1_id'], 'type': 'parent_child'},
-                {'source': f'p{ts['partnership_id']}',
-                 'target': ts['child2_id'], 'type': 'parent_child'}
-                 ]:
-                assert {'data': x} in items, f"{x} not found"
-
-    def test_character_connections_ng(self, app_context, client):
-        with app_context:
-            ts = self.family_tree_setup(client)
-            response = client.get(
-                f"/api/v1/characters/{ts['father_id']}/connections2?degree=1"
-            )
-            items = response.json
             assert items == [
                 { 'type': Partnership.MARRIAGE, 'id': ts["partnership_id"],
-                   'with': [{'id': ts['mother_id'], 'name': 'Mother', 'sex': Character.FEMALE}],
+                   'participants': [
+                       {'id': ts['father_id'], 'name': 'Father', 'sex': Character.MALE},      
+                       {'id': ts['mother_id'], 'name': 'Mother', 'sex': Character.FEMALE}],
                    'children': [
                        {'id': ts['child1_id'], 'name': 'Child1', 'sex': Character.UNKNOWN},
                        {'id': ts['child2_id'], 'name': 'Child2', 'sex': Character.UNKNOWN}

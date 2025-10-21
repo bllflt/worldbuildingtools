@@ -9,11 +9,9 @@ from flaskr.blueprints.images import image
 from flaskr.config import Config
 from flaskr.resources.character import Character, CharacterList
 from flaskr.resources.character_connections import CharacterConnections
-from flaskr.resources.character_partners import CharacterPartnersResource
 from flaskr.resources.offspring import Offspring, OffspringList
 from flaskr.resources.partners import Partners, PartnersList
 from flaskr.resources.partnership import Partnership, PartnershipList
-from flaskr.resources.twist import CharacterConnections2
 
 
 def create_app():
@@ -39,12 +37,9 @@ def create_app():
     api = Api(app)
     api.add_resource(CharacterList, '/api/v1/characters')
     api.add_resource(Character, '/api/v1/characters/<cid>')
-    api.add_resource(CharacterPartnersResource,
-                     '/api/v1/characters/<cid>/partners')
+    
     api.add_resource(CharacterConnections,
                      '/api/v1/characters/<cid>/connections')
-    api.add_resource(CharacterConnections2,
-                     '/api/v1/characters/<cid>/connections2')
 
     api.add_resource(PartnershipList, '/api/v1/partnerships')
     api.add_resource(Partnership, '/api/v1/partnerships/<id>')
