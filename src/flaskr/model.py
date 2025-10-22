@@ -40,6 +40,7 @@ class Character(db.Model):
     name: Mapped[str] = mapped_column(
         CheckConstraint("length(trim(name))>0"),
         nullable=False,
+        unique=True,
     )
     appearance: Mapped[Optional[str]] = mapped_column(default=None)
     background:  Mapped[Optional[str]] = mapped_column(default=None)
