@@ -9,7 +9,6 @@ from flaskr.blueprints.images import image
 from flaskr.config import Config
 from flaskr.resources.character import Character, CharacterList
 from flaskr.resources.character_connections import CharacterConnections
-from flaskr.resources.offspring import Offspring, OffspringList
 from flaskr.resources.partners import Partners, PartnersList
 from flaskr.resources.partnership import Partnership, PartnershipList
 
@@ -46,11 +45,6 @@ def create_app():
 
     api.add_resource(PartnersList, '/api/v1/partnerships/<pid>/participants')
     api.add_resource(Partners, '/api/v1/partnerships/<pid>/participants/<cid>')
-
-    api.add_resource(OffspringList,
-                     '/api/v1/partnerships/<pid>/offspring')
-    api.add_resource(Offspring,
-                     '/api/v1/partnerships/<pid>/offspring/<cid>')
 
     app.register_blueprint(image)
     CORS(app)

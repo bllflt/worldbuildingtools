@@ -101,17 +101,19 @@ class Partnership(db.Model):
     id: Annotated[int, mapped_column(
         primary_key=True)] = mapped_column(init=False)
     type: Annotated[int, mapped_column()] = mapped_column()
-    MARRIAGE = 1
-    CONCUBINAGE = 2
-    COHABITATION = 3
-    ENGAGEMENT = 4
-    LIAISON = 5
-    
-    OTHER = 99
+
+    LIAISON = 1
+    FACTION = 2
+
     start_date: Mapped[Optional[str]] = mapped_column(default=None)
     end_date: Mapped[Optional[str]] = mapped_column(default=None)
     is_primary: Mapped[Optional[bool]] = mapped_column(default=False)
-
+    legitimate: Mapped[Optional[bool]] = mapped_column(default=False)
+    name: Mapped[Optional[str]] = mapped_column(
+        CheckConstraint("length(trim(name))>0"),
+        default=None,
+        nullable=True,
+    )
 
 class PartnershipParticipant(db.Model):
     __tablename__ = 'partnership_participants'
@@ -128,7 +130,13 @@ class PartnershipParticipant(db.Model):
         nullable=False,
         primary_key=True,
     )] = mapped_column()
-    role: Mapped[Optional[str]] = mapped_column(default=None)
+    role: Annotated[int, mapped_column()] = mapped_column(
+        default=None,
+        nullable=False,
+    )
+
+    MATE = 1
+    CHILD = 2
 
 
 class Offspring(db.Model):
