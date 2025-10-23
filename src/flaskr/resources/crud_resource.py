@@ -13,7 +13,7 @@ class GroupAPI(Resource):
 
     def get(self):
         return self.schema(many=True).dump(
-            db.session.scalars(select(self.model).all())
+            db.session.scalars(select(self.model)).all()
         )
 
     def post(self):

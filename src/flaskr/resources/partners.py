@@ -1,13 +1,13 @@
 from flaskr.model import PartnershipParticipant
-from flaskr.schemas.family_tree import PartnershipParticipantSchema
-from flaskr.resources.partnership_subresource import (
-    SubResourceList, SubResourceItem
-)
+from flaskr.resources.partnership_subresource import (SubResourceItem,
+                                                      SubResourceList)
+from flaskr.schemas.family_tree import (PartnershipParticipantListSchema,
+                                        PartnershipParticipantSchema)
 
 
 class PartnersList(SubResourceList):
     model = PartnershipParticipant
-    schema = PartnershipParticipantSchema
+    schema = PartnershipParticipantListSchema
 
 
 class Partners(SubResourceItem):

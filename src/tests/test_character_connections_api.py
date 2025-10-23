@@ -27,12 +27,9 @@ class TestFamilyTreeResource:
         partnership_id = client.post("/api/v1/partnerships", json={
             "type": Partnership.MARRIAGE,
             }).json['id']
-        client.put(
-            f"/api/v1/partnerships/{partnership_id}/participants/{father_id}",
-            json={})
-        client.put(
-            f"/api/v1/partnerships/{partnership_id}/participants/{mother_id}",
-            json={})
+        client.post(
+                f"/api/v1/partnerships/{partnership_id}/participants",
+                json=[{'character_id': father_id}, {'character_id': mother_id}])
         client.put(
             f"/api/v1/partnerships/{partnership_id}/offspring/{child1_id}",
             json={})
