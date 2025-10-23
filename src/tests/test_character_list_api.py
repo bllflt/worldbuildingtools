@@ -170,15 +170,15 @@ class TestCharacterListResource:
             got = client.get('/api/v1/characters?fields=id,name').json
             assert got == [
                 {
-                    'id': 1,
-                    'name': 'c'
+                    'id': 3,
+                    'name': 'a'
                 },
                 {
                     'id': 2,
                     'name': 'b'
                 },
                 {
-                    'id': 3,
-                    'name': 'a'
+                    'id': 1,
+                    'name': 'c'
                 }
             ]
