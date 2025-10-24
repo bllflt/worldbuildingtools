@@ -1,6 +1,6 @@
 from flask_marshmallow import Marshmallow
 
-from flaskr.model import Offspring, Partnership, PartnershipParticipant
+from flaskr.model import Partnership, PartnershipParticipant
 
 ma = Marshmallow()
 

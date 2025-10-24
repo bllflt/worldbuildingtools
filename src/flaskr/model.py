@@ -137,20 +137,4 @@ class PartnershipParticipant(db.Model):
 
     MATE = 1
     CHILD = 2
-
-
-class Offspring(db.Model):
-    __tablename__ = 'offspring'
-    __table_args__ = (UniqueConstraint('partnership_id', 'character_id',
-                                       name='_partnership_child_uc'),)
-
-    partnership_id: Annotated[int, mapped_column(
-        ForeignKey("partnerships.id", ondelete="CASCADE"),
-        nullable=False,
-        primary_key=True,
-    )] = mapped_column()
-    character_id: Annotated[int, mapped_column(
-        ForeignKey("character.id", ondelete="CASCADE"),
-        nullable=False,
-        primary_key=True
-    )] = mapped_column()
+    MEMBER = 3

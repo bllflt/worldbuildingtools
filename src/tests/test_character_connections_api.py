@@ -1,5 +1,3 @@
-import pytest
-
 from flaskr.model import Character, Partnership, PartnershipParticipant
 
 
@@ -32,10 +30,10 @@ class TestFamilyTreeResource:
         client.post(
                 f"/api/v1/partnerships/{partnership_id}/participants",
                 json=[
-                    {'character_id': father_id, 'role': 1},
-                    {'character_id': mother_id, 'role': 1},
-                    {'character_id': child1_id, 'role': 2},
-                    {'character_id': child2_id, 'role': 2},
+                    {'character_id': father_id, 'role': PartnershipParticipant.MATE},
+                    {'character_id': mother_id, 'role': PartnershipParticipant.MATE},
+                    {'character_id': child1_id, 'role': PartnershipParticipant.CHILD},
+                    {'character_id': child2_id, 'role': PartnershipParticipant.CHILD},
                 ])
         return {
             "father_id": father_id,
@@ -92,8 +90,7 @@ class TestFamilyTreeResource:
                         'sex': Character.UNKNOWN, 'role': PartnershipParticipant.CHILD},
                       {'id': ts['child2_id'], 'name': 'Child2',
                        'sex': Character.UNKNOWN, 'role': PartnershipParticipant.CHILD},
-
                       ],
-              
+
                 }
-            ]   
+            ]
