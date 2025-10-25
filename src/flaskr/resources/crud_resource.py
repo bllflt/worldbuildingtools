@@ -32,9 +32,9 @@ class GroupAPI(Resource):
 
 
 class ItemAPI(Resource):
-    def get(self, id):
+    def get(self, pid):
         item = db.session.scalar(select(
-            self.model).where(self.model.id == id))
+            self.model).where(self.model.id == pid))
         if item is not None:
             return self.schema().dump(item)
         return {'error': {'type': 'Not found'}}, 404
@@ -50,9 +50,9 @@ class ItemAPI(Resource):
                 'type': 'Not found'
             }}, 404
 
-    def put(self, item_id):
+    def put(self, pid):
         item = db.session.scalar(select(
-            self.model).where(self.model.id == item_id))
+            self.model).where(self.model.id == pid))
         if item is None:
             return {'error': {
                 'type': 'Not found'

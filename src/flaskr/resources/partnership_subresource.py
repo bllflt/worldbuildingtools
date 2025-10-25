@@ -55,13 +55,19 @@ class SubResourceItem(ItemAPI):
             self.model.partnership_id == pid,
             self.model.character_id == cid
         )).scalar()
-        if old:
-            return None, 409
-        new_item = self.model(
-            partnership_id=pid,
-            character_id=cid
-        )
-        db.session.add(new_item)
+        if old is None:
+            return {'error': {
+                'type': 'Not found'
+            }}, 404
+        datum = request.get_json()
+        try:
+            self.schema().load(datum, instance=old)
+        except ValidationError as err:
+            return {'error': {
+                "type": "validation",
+                "message": err.normalized_messages()}
+                }, 400
+
         db.session.commit()
 
     def delete(self, pid, cid):

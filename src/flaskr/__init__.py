@@ -18,6 +18,7 @@ def create_app():
     load_dotenv()
 
     app = Flask(__name__, instance_relative_config=True)
+    CORS(app)
     app.config['SQLALCHEMY_DATABASE_URI'] = Config.database
 
     # ensure the instance folder exists
@@ -36,16 +37,15 @@ def create_app():
     api = Api(app)
     api.add_resource(CharacterList, '/api/v1/characters')
     api.add_resource(Character, '/api/v1/characters/<cid>')
-    
+
     api.add_resource(CharacterConnections,
                      '/api/v1/characters/<cid>/connections')
 
     api.add_resource(PartnershipList, '/api/v1/partnerships')
-    api.add_resource(Partnership, '/api/v1/partnerships/<id>')
+    api.add_resource(Partnership, '/api/v1/partnerships/<pid>')
 
     api.add_resource(PartnersList, '/api/v1/partnerships/<pid>/participants')
     api.add_resource(Partners, '/api/v1/partnerships/<pid>/participants/<cid>')
 
     app.register_blueprint(image)
-    CORS(app)
     return app
