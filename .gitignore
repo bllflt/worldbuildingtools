@@ -151,6 +151,9 @@ dmypy.json
 # pytype static type analyzer
 .pytype/
 
+# pyscn - Python Code Quality Analyzer 
+.pyscn/
+
 # Cython debug symbols
 cython_debug/
 
