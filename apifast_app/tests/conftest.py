@@ -1,12 +1,19 @@
 from typing import Generator
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlmodel import Session, SQLModel
-
 from apifast.db import get_db
 from apifast.main import app
-from apifast.test_config import engine
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlmodel import Session, SQLModel
+
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+)
+
 
 
 @pytest.fixture()
