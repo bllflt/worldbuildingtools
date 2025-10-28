@@ -1,6 +1,5 @@
-from sqlalchemy import select
-
 from flaskr.model import Character, Image, Roleplaying, db
+from sqlalchemy import select
 
 
 class TestCharacterResource:
@@ -192,6 +191,5 @@ class TestCharacterResource:
             assert response.status_code == 404
             assert response.json == {'error': {'type': 'Not found'}}
 
-            got = db.session.scalar(select(Character).where(
-                Character.name == "Graurog"))
+            got = db.session.scalar(select(Character).where(Character.name == "Graurog"))
             assert got is None

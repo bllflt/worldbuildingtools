@@ -35,6 +35,11 @@ class Character(SQLModel, table=True):
         back_populates="character_link",
         sa_relationship_kwargs={"cascade": "all, delete",
                                 "passive_deletes": True})
+    image_attributes: list["Image"] = Relationship(
+        back_populates="character_link",
+        sa_relationship_kwargs={"cascade": "all, delete",
+                                "passive_deletes": True})
+
 
 
 class Roleplaying(SQLModel, table=True):
@@ -52,6 +57,7 @@ class Roleplaying(SQLModel, table=True):
     )
     character_link: "Character" = Relationship(back_populates="roleplaying_attributes")
 
+
 class CharacterRead(BaseModel):
     # This model is for reading data. It mirrors Character's fields
     # but uses a computed_field to reshape the 'attributes' relationship.
@@ -61,12 +67,19 @@ class CharacterRead(BaseModel):
     appearance: str | None
     sex: int
     roleplaying_attributes: list["Roleplaying"] = PydanticField(exclude=True)
+    image_attributes: list["Image"] = PydanticField(exclude=True)
+
 
     @computed_field(return_type=list[str])
     @property
     def attributes(self) -> list[str]:
-        """Pluck the 'characteristic' from each Roleplaying object."""
         return [rp.characteristic for rp in self.roleplaying_attributes]
+ 
+    @computed_field(return_type=list[str])
+    @property
+    def images(self) -> list[str]:
+         return [i.uri for i in self.image_attributes]
+
 
 class Image(SQLModel, table=True):
     __tablename__ = "images"
@@ -81,7 +94,7 @@ class Image(SQLModel, table=True):
           min_length=1,
           sa_column_args=[CheckConstraint("length(trim(uri)) > 0")]
     )]
-
+    character_link: "Character" = Relationship(back_populates="")
 
 class Partnership(SQLModel, table=True):
     __tablename__ = 'partnerships'

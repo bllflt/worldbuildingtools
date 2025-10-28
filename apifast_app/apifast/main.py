@@ -1,6 +1,5 @@
+from apifast.routers import characters
 from fastapi import FastAPI
 
-from apifast.routers import characters
-
 app = FastAPI()
-app.include_router(characters.router)
+app.include_router(characters.router, prefix='/api/v1')

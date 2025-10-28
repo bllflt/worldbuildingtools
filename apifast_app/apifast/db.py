@@ -4,7 +4,10 @@ from sqlmodel import Session, SQLModel, create_engine
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"  # Example for a file-based SQLite
+from apifast.config import config
+
+
+SQLALCHEMY_DATABASE_URL = config.database_uri
 
 def enable_foreign_keys(engine: Engine):
     @event.listens_for(engine, "connect")

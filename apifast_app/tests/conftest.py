@@ -1,7 +1,7 @@
 from typing import Generator
 
 import pytest
-from apifast.db import get_db
+from apifast.db import enable_foreign_keys, get_db
 from apifast.main import app
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -13,7 +13,7 @@ engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
     connect_args={"check_same_thread": False},
 )
-
+enable_foreign_keys(engine)
 
 
 @pytest.fixture()
