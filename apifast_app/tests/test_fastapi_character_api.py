@@ -66,7 +66,6 @@ class TestCharacterApi:
             },
         )
         assert response.status_code == 201
-
         assert response.json() == {
             "id": 1,
             "name": "Graurog",
@@ -76,6 +75,37 @@ class TestCharacterApi:
             "images": [],
             "sex": 9,
         }
+        got = db_session.exec(
+            (select(Character).where(Character.name == "Graurog"))
+        ).one()
+        assert got is not None
+
+    def test_put_character(self, db_session, client):
+        client.post(
+            "/api/v1/characters",
+            json={
+                "name": "Graurogo",
+                "appearance": "Female Ogrillon (Orc-Ogre)",
+                "background": "",
+                "roleplaying": [],
+            },
+        )
+        response = client.put(
+            "/api/v1/characters/1",
+            json={
+                "name": "Graurog",
+                "appearance": "Female Ogrillon (Orc-Ogre)",
+                "background": "",
+                "roleplaying": [],
+            },
+        )
+
+        assert response.status_code == 204
+
+        got = db_session.exec(
+            (select(Character).where(Character.name == "Graurog"))
+        ).one()
+        assert got is not None
 
     def test_get_w_image(self, db_session, client):
         graurog = Character(name="Graurog", appearance=None, background=None)

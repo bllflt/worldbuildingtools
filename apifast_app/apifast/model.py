@@ -59,7 +59,7 @@ class CharacterRead(CharacterBase):
         return [i.uri for i in self.image_attributes]
 
 
-class CharacterCreate(CharacterBase):
+class CharacterWrite(CharacterBase):
     roleplaying: list[str] = []
     images: list[str] = []
 
