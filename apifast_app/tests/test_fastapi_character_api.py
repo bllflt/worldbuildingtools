@@ -107,11 +107,51 @@ class TestCharacterApi:
         ).one()
         assert got is not None
 
+    def test_put_w_roleplaying_images(self, db_session, client):
+        response = client.post(
+            "/api/v1/characters",
+            json={
+                "name": "Graurog",
+                "roleplaying": [
+                    "Blunt and direct",
+                    "Loyal and protective",
+                ],
+                "images": [
+                    "moo1.png",
+                    "moo2.png",
+                ],
+            },
+        )
+        new_id = response.json()["id"]
+        response = client.put(
+            f"/api/v1/characters/{new_id}",
+            json={
+                "name": "Graurog",
+                "roleplaying": ["Likes cheeese"],
+                "images": [
+                    "123434556.png",
+                ],
+            },
+        )
+        got = db_session.exec(
+            (select(Character).where(Character.name == "Graurog"))
+        ).one()
+        assert [r.characteristic for r in got.roleplaying_attributes] == [
+            "Likes cheeese"
+        ]
+        assert [i.uri for i in got.image_attributes] == ["123434556.png"]
+        assert (
+            db_session.exec((select(Image).where(Image.uri == "moo1.png")))
+            .one()
+            .character_id
+            is None
+        )
+
     def test_get_w_image(self, db_session, client):
         graurog = Character(name="Graurog", appearance=None, background=None)
         graurog.image_attributes = [
-            Image(uri="http://moo1.png"),
-            Image(uri="http://moo2.png"),
+            Image(uri="moo1.png"),
+            Image(uri="moo2.png"),
         ]
 
         db_session.add_all([graurog])
@@ -124,7 +164,7 @@ class TestCharacterApi:
             "id": 1,
             "sex": 9,
             "roleplaying": [],
-            "images": ["http://moo1.png", "http://moo2.png"],
+            "images": ["moo1.png", "moo2.png"],
             "name": "Graurog",
         }
 

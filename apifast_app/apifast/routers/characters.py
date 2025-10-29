@@ -12,7 +12,8 @@ router = APIRouter(
 @router.get("/characters", response_model=list[CharacterRead])
 async def get_characters(session: Session = Depends(get_db)) -> list[Character]:
     statement = select(Character).options(
-        selectinload(Character.roleplaying_attributes)
+        selectinload(Character.roleplaying_attributes),
+        selectinload(Character.image_attributes),
     )
     return session.exec(statement).all()
 
@@ -49,7 +50,7 @@ async def get_character_by_id(
             selectinload(Character.image_attributes),
         )
     )
-    character = session.exec(statement).first()
+    character = session.exec(statement).one_or_none()
     if not character:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -72,7 +73,7 @@ async def update_character_by_id(
             selectinload(Character.image_attributes),
         )
     )
-    db_character = session.exec(statement).first()
+    db_character = session.exec(statement).one_or_none()
     if not db_character:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
@@ -102,4 +103,4 @@ async def delete_character_by_id(
         )
     session.delete(character)
     session.commit()
-    session.commit()
+   

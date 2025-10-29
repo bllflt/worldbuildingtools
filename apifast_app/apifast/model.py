@@ -30,11 +30,13 @@ class Character(SQLModel, CharacterBase, table=True):
 
     roleplaying_attributes: list["Roleplaying"] = Relationship(
         back_populates="character_link",
-        sa_relationship_kwargs={"cascade": "all, delete", "passive_deletes": True},
+        passive_deletes=True,
+        cascade_delete=True,
     )
     image_attributes: list["Image"] = Relationship(
         back_populates="character_link",
-        sa_relationship_kwargs={"cascade": "all, delete", "passive_deletes": True},
+        passive_deletes=True,
+        cascade_delete=False,
     )
 
 
@@ -88,14 +90,14 @@ class Image(SQLModel, table=True):
     character_id: int | None = Field(
         default=None,
         foreign_key="character.id",
-        sa_column_args=[ForeignKey("character.id", ondelete="SET NULL")],
+        ondelete="SET NULL",
     )
     uri: str | None = Field(
         default=None,
         min_length=1,
         sa_column_args=[CheckConstraint("length(trim(uri)) > 0")],
     )
-    character_link: "Character" = Relationship(back_populates="")
+    character_link: "Character" = Relationship(back_populates="image_attributes")
 
 
 class Partnership(SQLModel, table=True):
