@@ -1,21 +1,68 @@
-from apifast.db import get_db
-from apifast.model import Character, CharacterRead, CharacterWrite, Image, Roleplaying
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
+
+from apifast.db import get_db
+from apifast.model import Character, CharacterRead, CharacterWrite, Image, Roleplaying
 
 router = APIRouter(
     tags=["characters"],
 )
 
 
-@router.get("/characters", response_model=list[CharacterRead])
-async def get_characters(session: Session = Depends(get_db)) -> list[Character]:
-    statement = select(Character).options(
-        selectinload(Character.roleplaying_attributes),
-        selectinload(Character.image_attributes),
-    )
-    return session.exec(statement).all()
+@router.get(
+    "/characters",
+    response_model=None,
+    responses={
+        200: {
+            "description": "A list of characters. Returns a list of `CharacterRead` objects by default, or a list of dictionaries with specific fields if the `fields` query parameter is used.",
+            "model": list[CharacterRead],
+        },
+    },
+)
+async def get_characters(
+    sort: str | None = Query(None, description="Field to sort by"),
+    name: str | None = Query(None, description="filter by name"),
+    fields: str | None = Query(None, description="Fields to return"),
+    session: Session = Depends(get_db),
+) -> list[CharacterRead] | Response:
+    include_fields: set[str] | None = None
+
+    statement = select(Character)
+    if fields:
+        include_fields = fields.split(",")
+
+        valid_fields = [
+            field
+            for field in include_fields
+            if field in CharacterRead.model_fields.keys()
+        ]
+        if len(valid_fields) != len(include_fields):
+            invalid_fields = set(include_fields) - set(valid_fields)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid fields requested: {', '.join(invalid_fields)}",
+            )
+
+        statement = select(*[getattr(Character, field) for field in include_fields])
+    if sort:
+        statement = statement.order_by(getattr(Character, sort))
+    if name:
+        statement = statement.where(Character.name.icontains(name))
+    if fields is None:
+        statement = statement.options(
+            selectinload(Character.roleplaying_attributes),
+            selectinload(Character.image_attributes),
+        )
+    results = session.exec(statement).all()
+    if fields is None:
+        return [CharacterRead.model_validate(c) for c in results]
+    rv = []
+    for row in results:
+        filtered_item = {k: row[i] for i, k in enumerate(include_fields)}
+        rv.append(filtered_item)
+    return JSONResponse(content=rv)
 
 
 @router.post(
@@ -103,4 +150,3 @@ async def delete_character_by_id(
         )
     session.delete(character)
     session.commit()
-   

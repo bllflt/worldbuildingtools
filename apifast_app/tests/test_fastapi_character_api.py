@@ -214,3 +214,48 @@ class TestCharacterApi:
         response = client.delete("/api/v1/characters/999")
         assert response.status_code == 404
         assert response.json() == {"detail": "Character with id 999 not found"}
+
+    def test_sorted_by_name(self, db_session, client):
+        a = Character(name="a")
+        b = Character(name="b")
+        c = Character(name="c")
+        db_session.add_all([c, b, a])
+        db_session.commit()
+
+        got = client.get("/api/v1/characters?sort=name").json()
+        got = list(map(lambda x: x["name"], got))
+        assert got == ["a", "b", "c"]
+
+    def test_filtered_by_name(self, db_session, client):
+        a = Character(name="a")
+        b = Character(name="b")
+        c = Character(name="c")
+        bill = Character(name="bill")
+        billy = Character(name="billy")
+        ybill = Character(name="ybill")
+        db_session.add_all([c, b, a, bill, billy, ybill])
+        db_session.commit()
+
+        got = client.get("/api/v1/characters?sort=name&name=bill").json()
+        got = list(map(lambda x: x["name"], got))
+        assert got == ["bill", "billy", "ybill"]
+
+    def test_fields(self, db_session, client):
+        a = Character(name="a", appearance="app_a", background="bg_a")
+        b = Character(name="b", appearance="app_b", background="bg_b")
+        c = Character(name="c", appearance="app_c", background="bg_c")
+        db_session.add_all([c, b, a])
+        db_session.commit()
+
+        got = client.get("/api/v1/characters?fields=id,name").json()
+        assert sorted(got, key=lambda x: x["name"]) == [
+            {"id": 3, "name": "a"},
+            {"id": 2, "name": "b"},
+            {"id": 1, "name": "c"},
+        ], got
+
+    def test_fields_error(self, client):
+        response = client.get("/api/v1/characters?fields=mu,nil")
+        assert response.status_code == 400
+        # The order of invalid fields from a set is not guaranteed
+        assert "Invalid fields requested" in response.json()["detail"]
