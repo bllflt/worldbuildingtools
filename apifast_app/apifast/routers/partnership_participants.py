@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select, text
+from sqlalchemy import text
+from sqlmodel import select
 
 from apifast.db import Session, get_db
 from apifast.model import (
@@ -12,22 +13,23 @@ router = APIRouter()
 
 
 @router.get(
-    "/partnerships/{pid}/participants", response_model=list[PartnershipParticipantRead]
+    "/partnerships/{pid}/participants", response_model=list[PartnershipParticipantWrite]
 )
 async def get_participants(
     pid: int,
     session: Session = Depends(get_db),
-) -> list[PartnershipParticipantRead]:
+) -> list[PartnershipParticipantWrite]:
     found = session.execute(
         text("select exists(select 1 from partnerships where id = :pid)"), {"pid": pid}
     ).scalar_one()
     if not found:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    return session.exec(
+    results = session.exec(
         select(PartnershipParticipant).where(
             PartnershipParticipant.partnership_id == pid
         )
     ).all()
+    return [PartnershipParticipantWrite.model_validate(r) for r in results]
 
 
 @router.post("/partnerships/{pid}/participants", status_code=status.HTTP_204_NO_CONTENT)

@@ -60,3 +60,56 @@ class TestCharacterConnections:
             "end_date": None,
             "name": None,
         }
+
+    def test_partnership_particiants(self, client):
+        ts = family_tree_setup(client)
+        resp = client.get("/api/v1/partnerships/1/participants")
+        assert resp.status_code == 200
+        assert resp.json() == [
+            {"character_id": ts["father_id"], "role": Role.MATE},
+            {"character_id": ts["mother_id"], "role": Role.MATE},
+            {"character_id": ts["child1_id"], "role": Role.CHILD},
+            {"character_id": ts["child2_id"], "role": Role.CHILD},
+        ]
+
+    def test_character_degree_connections(self, client):
+        ts = family_tree_setup(client)
+        response = client.get(
+            f"/api/v1/characters/{ts['father_id']}/connections?degree=1"
+        )
+        items = response.json()
+        assert items == [
+            {
+                "type": int(Ptype.LIAISON),
+                "is_primary": True,
+                "legitimate": True,
+                "start_date": None,
+                "end_date": None,
+                "participants": [
+                    {
+                        "id": ts["father_id"],
+                        "name": "Father",
+                        "sex": int(Sex.MALE),
+                        "role": int(Role.MATE),
+                    },
+                    {
+                        "id": ts["mother_id"],
+                        "name": "Mother",
+                        "sex": int(Sex.FEMALE),
+                        "role": int(Role.MATE),
+                    },
+                    {
+                        "id": ts["child1_id"],
+                        "name": "Child1",
+                        "sex": int(Sex.UNKNOWN),
+                        "role": int(Role.CHILD),
+                    },
+                    {
+                        "id": ts["child2_id"],
+                        "name": "Child2",
+                        "sex": int(Sex.UNKNOWN),
+                        "role": int(Role.CHILD),
+                    },
+                ],
+            }
+        ]

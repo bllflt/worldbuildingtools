@@ -154,12 +154,14 @@ class PartnershipWrite(PartnershipBase): ...
 
 
 class PartnershipParticipantRead(BaseModel):
-    role: Role = None
+    model_config = {
+        "from_attributes": True,
+    }
+    role: Role
 
 
 class PartnershipParticipantWrite(PartnershipParticipantRead):
-    role: Role = None
-    character_id: int = None
+    character_id: int
 
 
 class PartnershipParticipant(SQLModel, table=True):
