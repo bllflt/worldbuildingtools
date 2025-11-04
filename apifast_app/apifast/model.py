@@ -1,9 +1,9 @@
 import enum
+from typing import Annotated, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 from pydantic import Field as PydanticField
-from pydantic import computed_field
-from sqlalchemy import CheckConstraint, ForeignKey, UniqueConstraint
+from sqlalchemy import CheckConstraint, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -13,6 +13,17 @@ class Sex(enum.IntEnum):
     MALE = 1
     FEMALE = 2
     NA = 9
+
+
+class Role(enum.IntEnum):
+    MATE = 1
+    CHILD = 2
+    MEMBER = 3
+
+
+class Ptype(enum.IntEnum):
+    LIAISON = 1
+    FACTION = 2
 
 
 class CharacterBase(BaseModel):
@@ -76,9 +87,7 @@ class Roleplaying(SQLModel, table=True):
         sa_column_args=[CheckConstraint("length(trim(characteristic)) > 0")],
     )
     character_id: int | None = Field(
-        default=None,
-        foreign_key="character.id",
-        sa_column_args=[ForeignKey("character.id", ondelete="CASCADE")],
+        default=None, foreign_key="character.id", ondelete="CASCADE"
     )
     character_link: "Character" = Relationship(back_populates="roleplaying_attributes")
 
@@ -100,16 +109,57 @@ class Image(SQLModel, table=True):
     character_link: "Character" = Relationship(back_populates="image_attributes")
 
 
-class Partnership(SQLModel, table=True):
-    __tablename__ = "partnerships"
+class FactionMember(BaseModel):
+    id: int
+    role: Role
+    name: str | None = None
+    sex: Sex | None = None
 
-    id: int | None = Field(default=None, primary_key=True)
-    type: int
+
+class SocialNetwork(BaseModel):
+    participants: list[FactionMember] = []
+    start_date: str | None = None
+    end_date: str | None = None
+
+
+class Liaison(SocialNetwork):
+    type: Literal[Ptype.LIAISON] = Ptype.LIAISON
+    is_primary: bool
+    legitimate: bool
+
+
+class Faction(SocialNetwork):
+    type: Literal[Ptype.FACTION] = Ptype.FACTION
+    name: str | None = None
+
+
+SocialConnection = Annotated[Liaison | Faction, PydanticField(discriminator="type")]
+
+
+class PartnershipBase(BaseModel):
+    type: int = Field(sa_column_args=[CheckConstraint("type IN (1, 2)")])
     start_date: str | None = Field(default=None)
     end_date: str | None = Field(default=None)
     is_primary: bool | None = Field(default=False)
     legitimate: bool | None = Field(default=False)
     name: str | None = Field(default=None)
+
+
+class Partnership(SQLModel, PartnershipBase, table=True):
+    __tablename__ = "partnerships"
+    id: int | None = Field(default=None, primary_key=True)
+
+
+class PartnershipWrite(PartnershipBase): ...
+
+
+class PartnershipParticipantRead(BaseModel):
+    role: Role = None
+
+
+class PartnershipParticipantWrite(PartnershipParticipantRead):
+    role: Role = None
+    character_id: int = None
 
 
 class PartnershipParticipant(SQLModel, table=True):
@@ -121,15 +171,11 @@ class PartnershipParticipant(SQLModel, table=True):
     )
 
     partnership_id: int = Field(
-        foreign_key="partnerships.id",
-        sa_column_args=[ForeignKey("partnerships.id", ondelete="CASCADE")],
-        primary_key=True,
+        foreign_key="partnerships.id", ondelete="CASCADE", primary_key=True
     )
     character_id: int = Field(
-        foreign_key="character.id",
-        sa_column_args=[ForeignKey("character.id", ondelete="CASCADE")],
-        primary_key=True,
+        foreign_key="character.id", ondelete="CASCADE", primary_key=True
     )
-    role: int = Field(default=None)
-    partnership: "Partnership" = Relationship()
-    character: "Character" = Relationship()
+    role: int = Field(
+        default=None, sa_column_args=[CheckConstraint("role IN (1, 2, 3)")]
+    )

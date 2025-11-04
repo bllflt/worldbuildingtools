@@ -16,7 +16,11 @@ router = APIRouter(
     response_model=None,
     responses={
         200: {
-            "description": "A list of characters. Returns a list of `CharacterRead` objects by default, or a list of dictionaries with specific fields if the `fields` query parameter is used.",
+            "description": (
+                "A list of characters. Returns a list of `CharacterRead` objects by default,"
+                + " or a list of dictionaries with specific fields if the `fields` query "
+                + "parameter is used."
+            ),
             "model": list[CharacterRead],
         },
     },
@@ -82,7 +86,7 @@ async def create_character(
     session.add(db_character)
     session.commit()
     session.refresh(db_character)
-    return db_character  # FastAPI will convert this to CharacterRead
+    return db_character
 
 
 @router.get("/characters/{character_id}", response_model=CharacterRead)
