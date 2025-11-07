@@ -2,12 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
 from apifast.db import get_db
-from apifast.model import Partnership, PartnershipWrite
+from apifast.model import Partnership, PartnershipWrite, SocialConnection
 
 router = APIRouter()
 
 
-@router.get("/partnerships", response_model=list[Partnership])
+@router.get("/partnerships", response_model=list[SocialConnection])
 async def get_partnerships(
     session: Session = Depends(get_db),
 ) -> list[Partnership]:
@@ -26,10 +26,14 @@ async def create_partnership(
     return db_partnership
 
 
-@router.get("/partnerships/{partnership_id}", response_model=Partnership)
+@router.get(
+    "/partnerships/{partnership_id}",
+    response_model=SocialConnection,
+    response_model_exclude={"participants"},
+)
 async def get_partnership_by_id(
     partnership_id: int, session: Session = Depends(get_db)
-) -> Partnership:
+) -> SocialConnection:
     partnership = session.get(Partnership, partnership_id)
     if not partnership:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)

@@ -52,13 +52,11 @@ class TestCharacterConnections:
         resp = client.get(f"/api/v1/partnerships/{ts['partnership_id']}")
         assert resp.status_code == 200
         assert resp.json() == {
-            "id": ts["partnership_id"],
-            "type": Ptype.LIAISON,
+            "type": int(Ptype.LIAISON),
             "is_primary": True,
             "legitimate": True,
             "start_date": None,
             "end_date": None,
-            "name": None,
         }
 
     def test_partnership_particiants(self, client):

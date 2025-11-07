@@ -30,7 +30,7 @@ class CharacterBase(BaseModel):
     name: str
     background: str | None = None
     appearance: str | None = None
-    sex: Sex = Sex.NA
+    sex: Sex = Field(default=Sex.NA, description="0=unknown, 1=male, 2=female, 9=na")
 
 
 class Character(SQLModel, CharacterBase, table=True):
@@ -123,13 +123,13 @@ class SocialNetwork(BaseModel):
 
 
 class Liaison(SocialNetwork):
-    type: Literal[Ptype.LIAISON] = Ptype.LIAISON
-    is_primary: bool
-    legitimate: bool
+    type: Literal[Ptype.LIAISON] = Field(default=Ptype.LIAISON, description="A liaison")
+    is_primary: bool = Field(default=False, description="Is this a primary liaison")
+    legitimate: bool = Field(default=False, description="Is this a legitimate liaison")
 
 
 class Faction(SocialNetwork):
-    type: Literal[Ptype.FACTION] = Ptype.FACTION
+    type: Literal[Ptype.FACTION] = Field(default=Ptype.FACTION, description="A faction")
     name: str | None = None
 
 
@@ -137,7 +137,7 @@ SocialConnection = Annotated[Liaison | Faction, PydanticField(discriminator="typ
 
 
 class PartnershipBase(BaseModel):
-    type: int = Field(sa_column_args=[CheckConstraint("type IN (1, 2)")])
+    type: Ptype
     start_date: str | None = Field(default=None)
     end_date: str | None = Field(default=None)
     is_primary: bool | None = Field(default=False)
@@ -148,6 +148,7 @@ class PartnershipBase(BaseModel):
 class Partnership(SQLModel, PartnershipBase, table=True):
     __tablename__ = "partnerships"
     id: int | None = Field(default=None, primary_key=True)
+    type: int = Field(sa_column_args=[CheckConstraint("type IN (1, 2)")])
 
 
 class PartnershipWrite(PartnershipBase): ...
@@ -157,7 +158,7 @@ class PartnershipParticipantRead(BaseModel):
     model_config = {
         "from_attributes": True,
     }
-    role: Role
+    role: Role = Field(description="1=mate, 2=child, 3=member")
 
 
 class PartnershipParticipantWrite(PartnershipParticipantRead):
@@ -178,6 +179,4 @@ class PartnershipParticipant(SQLModel, table=True):
     character_id: int = Field(
         foreign_key="character.id", ondelete="CASCADE", primary_key=True
     )
-    role: int = Field(
-        default=None, sa_column_args=[CheckConstraint("role IN (1, 2, 3)")]
-    )
+    role: int = Field(sa_column_args=[CheckConstraint("role IN (1, 2, 3)")])

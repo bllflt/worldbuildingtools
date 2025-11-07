@@ -23,7 +23,7 @@ router = APIRouter(
 )
 async def get_connections_by_charcter_id(
     character_id: int,
-    degree: int = Query(None, description="Field to sort by"),
+    degree: int = Query(None, description="Degree of social graph to return"),
     session: Session = Depends(get_db),
 ) -> list[SocialConnection]:
     rows = (
@@ -88,4 +88,5 @@ FROM all_partnerships p;
         .mappings()
         .all()
     )
-    return [json.loads(row["partnerships_json"]) for row in rows]
+    connections = [json.loads(row["partnerships_json"]) for row in rows]
+    return connections
