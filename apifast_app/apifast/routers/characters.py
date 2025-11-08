@@ -5,6 +5,7 @@ from sqlmodel import Session, select
 
 from apifast.db import get_db
 from apifast.model import Character, CharacterRead, CharacterWrite, Image, Roleplaying
+from apifast.services.characters import CharacterQuery, CharacterService
 
 router = APIRouter(
     tags=["characters"],
@@ -25,7 +26,7 @@ router = APIRouter(
         },
     },
 )
-async def get_characters(
+async def get_characters_list(
     sort: str | None = Query(None, description="Field to sort by"),
     name: str | None = Query(None, description="filter by name"),
     fields: str | None = Query(None, description="Fields to return"),
@@ -33,7 +34,6 @@ async def get_characters(
 ) -> list[CharacterRead] | Response:
     include_fields: set[str] | None = None
 
-    statement = select(Character)
     if fields:
         include_fields = fields.split(",")
 
@@ -49,17 +49,14 @@ async def get_characters(
                 detail=f"Invalid fields requested: {', '.join(invalid_fields)}",
             )
 
-        statement = select(*[getattr(Character, field) for field in include_fields])
-    if sort:
-        statement = statement.order_by(getattr(Character, sort))
-    if name:
-        statement = statement.where(Character.name.icontains(name))
-    if fields is None:
-        statement = statement.options(
-            selectinload(Character.roleplaying_attributes),
-            selectinload(Character.image_attributes),
-        )
-    results = session.exec(statement).all()
+    results = CharacterService.get_characters(
+        session,
+        CharacterQuery(
+            sort=sort,
+            name=name,
+            fields=include_fields,
+        ),
+    )
     if fields is None:
         return [CharacterRead.model_validate(c) for c in results]
     rv = []
@@ -93,15 +90,8 @@ async def create_character(
 async def get_character_by_id(
     character_id: int, session: Session = Depends(get_db)
 ) -> Character:
-    statement = (
-        select(Character)
-        .where(Character.id == character_id)
-        .options(
-            selectinload(Character.roleplaying_attributes),
-            selectinload(Character.image_attributes),
-        )
-    )
-    character = session.exec(statement).one_or_none()
+    
+    character = CharacterService.get_character_by_id(session, character_id) 
     if not character:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

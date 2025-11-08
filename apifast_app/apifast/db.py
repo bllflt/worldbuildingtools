@@ -1,13 +1,14 @@
+from contextlib import contextmanager
 from typing import Generator
 
-from sqlmodel import Session, SQLModel, create_engine
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
+from sqlmodel import Session, SQLModel, create_engine
 
 from apifast.config import config
 
-
 SQLALCHEMY_DATABASE_URL = config.database_uri
+
 
 def enable_foreign_keys(engine: Engine):
     @event.listens_for(engine, "connect")
@@ -26,15 +27,16 @@ def enable_foreign_keys(engine: Engine):
 
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, 
-    connect_args={"check_same_thread": False} 
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
 enable_foreign_keys(engine)
+
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
 
-def get_db() -> Generator[Session, None, None]:
 
+@contextmanager
+def get_db() -> Generator[Session, None, None]:
     with Session(engine) as session:
         yield session
