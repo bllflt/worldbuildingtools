@@ -27,7 +27,7 @@ def enable_foreign_keys(engine: Engine):
 
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    SQLALCHEMY_DATABASE_URL,
 )
 enable_foreign_keys(engine)
 
@@ -36,7 +36,9 @@ def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
 
 
-@contextmanager
 def get_db() -> Generator[Session, None, None]:
     with Session(engine) as session:
         yield session
+
+
+get_db_context = contextmanager(get_db)

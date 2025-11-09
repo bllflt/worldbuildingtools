@@ -40,7 +40,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
     # MCP SuperAssistant requires this, MCP Inspector does not
-    expose_headers=["mcp-session-id"],  
+    # expose_headers=["mcp-session-id"],
 )
 
 app.include_router(characters.router, prefix="/api/v1")
