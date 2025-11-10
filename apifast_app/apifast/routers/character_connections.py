@@ -23,7 +23,12 @@ router = APIRouter(
 )
 async def get_connections_by_charcter_id(
     character_id: int,
-    degree: int = Query(None, description="Degree of social graph to return"),
+    degree: int = Query(
+        description="Degree of social graph to return (0-3)",
+        ge=0,
+        le=3,
+        default=0,
+    ),
     session: Session = Depends(get_db),
 ) -> list[SocialConnection]:
     rows = (
