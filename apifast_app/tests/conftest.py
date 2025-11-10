@@ -16,8 +16,8 @@ engine = create_engine(
 enable_foreign_keys(engine)
 
 
-@pytest.fixture()
-def db_session() ->  Generator[Session, None, None]:
+@pytest.fixture(scope="function")
+def db_session() -> Generator[Session, None, None]:
     """Creates a clean, independent session for each test."""
     # 1. Create tables in the test database
     SQLModel.metadata.create_all(bind=engine)
@@ -29,19 +29,21 @@ def db_session() ->  Generator[Session, None, None]:
     yield session
 
     session.close()
-    transaction.rollback() # Rolls back all changes made during the test
+    transaction.rollback()  # Rolls back all changes made during the test
     connection.close()
 
-@pytest.fixture()
+
+@pytest.fixture(scope="function")
 def client(db_session: Session) -> Generator[TestClient, None, None]:
     """TestClient that uses the test session."""
+
     def override_get_db():
         """Override the dependency to use the test session."""
         try:
-            yield db_session # Yield the session from the db_session fixture
+            yield db_session  # Yield the session from the db_session fixture
         finally:
             # Note: No session.close() here as it's handled by db_session cleanup
-            pass 
+            pass
 
     app.dependency_overrides[get_db] = override_get_db
     yield TestClient(app)
