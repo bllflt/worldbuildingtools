@@ -57,6 +57,7 @@ class TestCharacterConnections:
             "legitimate": True,
             "start_date": None,
             "end_date": None,
+            "name": None,
         }
 
     def test_partnership_particiants(self, client):
@@ -78,6 +79,7 @@ class TestCharacterConnections:
         items = response.json()
         assert items == [
             {
+                "id": ts["partnership_id"],
                 "type": int(Ptype.LIAISON),
                 "is_primary": True,
                 "legitimate": True,

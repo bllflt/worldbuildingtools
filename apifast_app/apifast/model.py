@@ -117,6 +117,7 @@ class FactionMember(BaseModel):
 
 
 class SocialNetwork(BaseModel):
+    id: int
     participants: list[FactionMember] = []
     start_date: str | None = None
     end_date: str | None = None

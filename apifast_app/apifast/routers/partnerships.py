@@ -7,7 +7,7 @@ from apifast.model import Partnership, PartnershipWrite, SocialConnection
 router = APIRouter()
 
 
-@router.get("/partnerships", response_model=list[SocialConnection])
+@router.get("/partnerships", response_model=list[Partnership])
 async def get_partnerships(
     session: Session = Depends(get_db),
 ) -> list[Partnership]:
@@ -28,8 +28,8 @@ async def create_partnership(
 
 @router.get(
     "/partnerships/{partnership_id}",
-    response_model=SocialConnection,
-    response_model_exclude={"participants"},
+    response_model=Partnership,
+    response_model_exclude={"id"},
 )
 async def get_partnership_by_id(
     partnership_id: int, session: Session = Depends(get_db)
