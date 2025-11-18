@@ -9,6 +9,7 @@ env_path = Path(__file__).parent.parent.parent / '.env'
 class Config(BaseSettings):
     image_dir: str
     database_uri: str
+    redis_uri: str
     model_config = SettingsConfigDict(env_file=env_path)
 
 config = Config()
