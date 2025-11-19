@@ -1,7 +1,7 @@
 import asyncio
 import json
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Response
 from fastapi.responses import StreamingResponse
 
 from apifast.mdb import get_redis
@@ -14,6 +14,9 @@ async def sse_event_stream(request: Request, channel_name: str, keepalive_interv
     await pubsub.subscribe(channel_name)
 
     try:
+        # Send an initial keep-alive message to establish the connection
+        yield ": keep-alive\n\n"
+
         last_keepalive = 0
         while True:
             if await request.is_disconnected():
@@ -30,26 +33,27 @@ async def sse_event_stream(request: Request, channel_name: str, keepalive_interv
 
             if message:
                 data = message["data"]
-
-                #
-                if not isinstance(data, str):
-                    data = json.dumps(data)
+                data = json.dumps(data.decode())
 
                 yield f"data: {data}\n\n"
-
 
             await asyncio.sleep(0.01)
 
     finally:
         await pubsub.unsubscribe(channel_name)
-        await pubsub.close()
+        await pubsub.aclose()
 
 
 router = APIRouter()
 
 
-@router.get("/events/{channel}")
+@router.get("/events/character/{channel}")
 async def sse(channel: str, request: Request):
     return StreamingResponse(
-        sse_event_stream(request, channel), media_type="text/event-stream"
+        sse_event_stream(request, channel),
+        headers={
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        },
     )

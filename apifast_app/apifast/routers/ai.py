@@ -7,8 +7,8 @@ from sqlmodel import Session, select
 
 from apifast.config import config
 from apifast.db import get_db
-from apifast.model import Character, Image
 from apifast.mdb import get_redis
+from apifast.model import Character, Image
 
 QUEUE_NAME = "work_queue"
 
@@ -57,6 +57,7 @@ async def enque_caption_work(
 @router.put("/ai/work/caption/complete", status_code=status.HTTP_202_ACCEPTED)
 async def process_caption_result(
     data: CaptionJobResult,
+    redis=Depends(get_redis),
     session: Session = Depends(get_db),
 ):
     character = session.get(Character, data.character_id)
@@ -64,3 +65,14 @@ async def process_caption_result(
         if character.appearance == "":
             character.appearance = data.merge
             session.commit()
+        else:
+
+            await redis.publish(
+                f"{data.character_id}",
+                json.dumps(
+                    {
+                        "explanation": data.explanation,
+                        "new_description": data.merge,
+                    }
+                ),
+            )

@@ -27,10 +27,13 @@ class Ptype(enum.IntEnum):
 
 
 class CharacterBase(BaseModel):
-    name: str
+    name: str = PydanticField(min_length=1)
     background: str | None = None
     appearance: str | None = None
-    sex: Sex = Field(default=Sex.NA, description="0=unknown, 1=male, 2=female, 9=na")
+    sex: Literal[0, 1, 2, 9] = PydanticField(
+        default=Sex.NA,
+        description="ISO/IEC 5218 encoding: 0=Unknown, 1=male, 2=female, 9=N/A",
+    )
 
 
 class Character(SQLModel, CharacterBase, table=True):
@@ -101,9 +104,9 @@ class Image(SQLModel, table=True):
         foreign_key="character.id",
         ondelete="SET NULL",
     )
-    uri: str | None = Field(
-        default=None,
+    uri: str = Field(
         min_length=1,
+        unique=True,
         sa_column_args=[CheckConstraint("length(trim(uri)) > 0")],
     )
     character_link: "Character" = Relationship(back_populates="image_attributes")
