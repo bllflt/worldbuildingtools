@@ -77,14 +77,22 @@ class CharacterService:
         update_data = character.model_dump(exclude={"roleplaying", "images"})
         for key, value in update_data.items():
             setattr(db_character, key, value)
-        db_character.roleplaying_attributes.clear()
-        db_character.roleplaying_attributes.extend(
-            [Roleplaying(characteristic=attr) for attr in character.roleplaying]
-        )
-        db_character.image_attributes.clear()
-        db_character.image_attributes.extend(
-            [Image(uri=img) for img in character.images]
-        )
+
+        old_attributes = [i.characteristic for i in db_character.roleplaying_attributes]     
+        for attr in db_character.roleplaying_attributes:
+            if attr.characteristic not in character.roleplaying:
+                session.delete(attr)
+        for attr in character.roleplaying:
+            if attr not in old_attributes:
+                db_character.roleplaying_attributes.append(Roleplaying(characteristic=attr))
+        
+        old_images = [i.uri for i in db_character.image_attributes]
+        for img in db_character.image_attributes:
+            if img.uri not in character.images:
+                img.character_id = None
+        for img in character.images:
+            if img not in old_images:
+                db_character.image_attributes.append(Image(uri=img))
 
         session.commit()
 

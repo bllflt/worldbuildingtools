@@ -60,7 +60,7 @@ def add_character(character: CharacterWrite) -> CharacterRead:
 @mcp.tool()
 def update_character(char_id: int, character: CharacterWrite) -> None:
     """
-    Update an existing character.
+    Updates a character. Full update (PUT). If only some fields are provided, automatically fill missing fields with the current character values to avoid data loss.
     """
     with get_db_context() as session:
         CharacterService.update_character(session, char_id, character)

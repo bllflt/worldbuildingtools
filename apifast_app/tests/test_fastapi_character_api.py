@@ -13,7 +13,6 @@ class TestCharacterApi:
                 Roleplaying(characteristic="Loyal and protective"),
             ],
         )
-
         cinsora = Character(
             name="Cinsora",
             appearance="Dragonborne",
@@ -259,3 +258,49 @@ class TestCharacterApi:
         assert response.status_code == 400
         # The order of invalid fields from a set is not guaranteed
         assert "Invalid fields requested" in response.json()["detail"]
+
+    def test_no_excessive_cascade_image_roleplaying(self, db_session, client):
+        cinsora = Character(
+            name="Cinsora",
+            appearance="Dragonborne",
+            background=None,
+            roleplaying_attributes=[
+                Roleplaying(characteristic="Charming but unrefined"),
+                Roleplaying(characteristic="Collects trinkets"),
+            ],
+            image_attributes=[
+                Image(uri="moo1.png"),
+                Image(uri="moo2.png"),
+            ],
+        )
+
+        db_session.add_all([cinsora])
+        db_session.commit()
+
+        id = cinsora.id
+        pre_image_ids = [i.id for i in cinsora.image_attributes]
+        pre_roleplaying_ids = [r.id for r in cinsora.roleplaying_attributes]
+
+        client.put(
+            f"/api/v1/characters/{id}",
+            json={
+                "name": "Cinsora",
+                "appearance": "A very tall and broad shouldered Dragonborne",
+                "background": None,
+                "sex": 9,
+                "roleplaying": [
+                    "Charming but unrefined",
+                    "Collects trinkets",
+                ],
+                "images": [
+                    "moo1.png",
+                    "moo2.png",
+                ],
+            },
+        )
+        db_session.refresh(cinsora)
+        post_image_ids = [i.id for i in cinsora.image_attributes]
+        post_roleplaying_ids = [r.id for r in cinsora.roleplaying_attributes]
+
+        assert pre_image_ids == post_image_ids
+        assert pre_roleplaying_ids == post_roleplaying_ids
