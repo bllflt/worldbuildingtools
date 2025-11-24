@@ -9,6 +9,7 @@ from apifast.routers import (
     ai,
     character_connections,
     characters,
+    chat,
     events,
     images,
     partnership_participants,
@@ -52,5 +53,7 @@ app.include_router(partnership_participants.router, prefix="/api/v1")
 
 app.include_router(ai.router, prefix="/api/v1")
 app.include_router(events.router, prefix="/api/v1")
+
+app.include_router(chat.router, prefix="/api/v1")
 
 app.include_router(images.router)

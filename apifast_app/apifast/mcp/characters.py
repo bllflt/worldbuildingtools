@@ -9,7 +9,7 @@ mcp = FastMCP("Character Tools")
 @mcp.tool()
 def get_character_id_list() -> list[tuple[str, int]]:
     """
-    A list of character names and ids.
+    A list of all character names and ids.
     """
     with get_db_context() as session:
         rv = CharacterService.get_characters(
@@ -34,7 +34,7 @@ def get_character_detail(char_id: int) -> CharacterRead:
 @mcp.tool()
 def search_character_by_name_substring(name_substring: str) -> list[tuple[str, int]]:
     """
-    A listof character names and their ids that contain the given substring.
+    A list of character names and their ids that contain the given substring.
     """
     with get_db_context() as session:
         rv = CharacterService.get_characters(
