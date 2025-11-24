@@ -30,12 +30,13 @@ class CharacterBase(BaseModel):
     name: str = PydanticField(min_length=1)
     background: str | None = None
     appearance: str | None = PydanticField(
+        default=None,
         description="""
             A concise, vivid snapshot of the character as they would appear on first impression.
             Keep the description to 1–2 sentences (up to 3 only if the character has truly extraordinary traits).
             Focus on the most distinctive and memorable visual features, rather than cataloging every detail.
             Aim for a pithy, high-impact description suitable for narrative or visual applications.
-            """
+            """,
     )
     sex: Literal[0, 1, 2, 9] = PydanticField(
         default=Sex.NA,

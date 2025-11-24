@@ -10,6 +10,7 @@ class Config(BaseSettings):
     image_dir: str
     database_uri: str
     redis_uri: str
+    gemini_api_key: str
     model_config = SettingsConfigDict(env_file=env_path)
 
 config = Config()

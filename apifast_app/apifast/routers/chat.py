@@ -6,10 +6,11 @@ from google import genai
 from google.genai import types  # noqa: F401
 from google.genai.chats import AsyncChat
 
+from apifast.config import config
 from apifast.mdb import get_redis
 
 mcp_client = Client("http://127.0.0.1:5000/mcp")
-client = genai.Client(api_key="AIzaSyC_V-FKzNbYM_4aceYrb9knTyJMCEjjhe4")
+client = genai.Client(api_key=config.gemini_api_key)
 
 
 router = APIRouter()
