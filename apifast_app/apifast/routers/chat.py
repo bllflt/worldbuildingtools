@@ -1,9 +1,11 @@
 from dataclasses import dataclass
 
+import msgpack
+import redis.asyncio as redis
 from fastapi import APIRouter, Depends, Request
 from fastmcp import Client
 from google import genai
-from google.genai import types  # noqa: F401
+from google.genai import types as genai_types
 from google.genai.chats import AsyncChat
 
 from apifast.config import config
@@ -30,27 +32,28 @@ class ServerMessage:
 async def get_client_message(
     message: ClientMessage,
     request=Request,
-    redis=Depends(get_redis),
+    redis: redis.Redis = Depends(get_redis),
 ) -> ServerMessage | None:
     try:
         async with mcp_client:
+            packed = await redis.get("chat:1:history")
+            if packed:
+                history = msgpack.unpackb(packed, raw=False)
+            else:
+                history = []
             chat: AsyncChat = client.aio.chats.create(
                 model="gemini-2.5-flash",
-                config=genai.types.GenerateContentConfig(
+                config=genai_types.GenerateContentConfig(
                     tools=[mcp_client.session],
                 ),
+                history=[genai_types.Content(**item) for item in history],
             )
-            while True:
-                # if await request.is_disconnected():
-                #    break
-                # if not message.content:
-                #     continue
-                response = await chat.send_message(message.content)
-                if response:
-                    return ServerMessage(
-                        assistant="".join(
-                            part.text for part in response.parts if part.text
-                        )
-                    )
+            response = await chat.send_message(message.content)
+            if response:
+                history_to_save = [item.model_dump() for item in chat.get_history()]
+                packed = msgpack.packb(history_to_save, use_bin_type=True)
+                await redis.set("chat:1:history", packed)
+                if response.text:
+                    return ServerMessage(assistant=response.text)
     except Exception as e:
         print(e)
