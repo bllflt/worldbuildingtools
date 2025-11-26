@@ -44,7 +44,15 @@ async def get_client_message(
             chat: AsyncChat = client.aio.chats.create(
                 model="gemini-2.5-flash",
                 config=genai_types.GenerateContentConfig(
+                    system_instruction="""You are a helpful assistant. You have access to tools for looking up specific character details. 
+                                      However, for general questions (like history, fashion, culture), answer directly using your internal 
+                                      knowledge.""",
                     tools=[mcp_client.session],
+                    tool_config=genai_types.ToolConfig(
+                        function_calling_config=genai_types.FunctionCallingConfig(
+                            mode="AUTO"
+                        )
+                    ),
                 ),
                 history=[genai_types.Content(**item) for item in history],
             )

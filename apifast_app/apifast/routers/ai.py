@@ -62,17 +62,12 @@ async def process_caption_result(
 ):
     character = session.get(Character, data.character_id)
     if character:
-        if character.appearance == "":
-            character.appearance = data.merge
-            session.commit()
-        else:
-
-            await redis.publish(
-                f"{data.character_id}",
-                json.dumps(
-                    {
-                        "explanation": data.explanation,
-                        "new_description": data.merge,
-                    }
-                ),
-            )
+        await redis.publish(
+            f"{data.character_id}",
+            json.dumps(
+                {
+                    "explanation": data.explanation,
+                    "new_description": data.merge,
+                }
+            ),
+        )
