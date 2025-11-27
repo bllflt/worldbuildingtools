@@ -1,10 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import selectinload
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from apifast.db import get_db
-from apifast.model import Character, CharacterRead, CharacterWrite, Image, Roleplaying
+from apifast.model import Character, CharacterRead, CharacterWrite
 from apifast.services.characters import CharacterQuery, CharacterService
 
 router = APIRouter(

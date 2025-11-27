@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session, select
 
 from apifast.db import get_db
-from apifast.model import Partnership, PartnershipWrite, SocialConnection
+from apifast.model import Partnership, PartnershipWrite, Ptype, SocialConnection
 
 router = APIRouter()
 
@@ -10,8 +10,12 @@ router = APIRouter()
 @router.get("/partnerships", response_model=list[Partnership])
 async def get_partnerships(
     session: Session = Depends(get_db),
+    faction: bool = Query(False, description="Filter by factions"),
 ) -> list[Partnership]:
-    results = session.exec(select(Partnership)).all()
+    q = select(Partnership)
+    if faction:
+        q = q.where(Partnership.type == Ptype.FACTION, Partnership.name.is_not(None))
+    results = session.exec(q).all()
     return results
 
 
