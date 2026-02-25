@@ -1,4 +1,4 @@
-import enum
+from enum import Enum, IntEnum
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, computed_field
@@ -8,20 +8,20 @@ from sqlmodel import Field, Relationship, SQLModel
 
 
 # ISO/IEC 5218
-class Sex(enum.IntEnum):
+class Sex(IntEnum):
     UNKNOWN = 0
     MALE = 1
     FEMALE = 2
     NA = 9
 
 
-class Role(enum.IntEnum):
-    MATE = 1
-    CHILD = 2
-    MEMBER = 3
+class RoleCode(str, Enum):
+    MATE = "MATE"
+    CHILD = "CHILD"
+    MEMBER = "MEMBER"
 
 
-class Ptype(enum.IntEnum):
+class Ptype(IntEnum):
     LIAISON = 1
     FACTION = 2
 
@@ -122,7 +122,7 @@ class Image(SQLModel, table=True):
 
 class FactionMember(BaseModel):
     id: int
-    role: Role
+    role: RoleCode
     name: str | None = None
     sex: Sex | None = None
 
@@ -166,11 +166,17 @@ class Partnership(SQLModel, PartnershipBase, table=True):
 class PartnershipWrite(PartnershipBase): ...
 
 
+class Role(SQLModel, table=True):
+    __tablename__ = "roles"
+    code: str = Field(default=None, primary_key=True)
+    description: str | None = None
+
+
 class PartnershipParticipantRead(BaseModel):
     model_config = {
         "from_attributes": True,
     }
-    role: Role = Field(description="1=mate, 2=child, 3=member")
+    role_code: RoleCode
 
 
 class PartnershipParticipantWrite(PartnershipParticipantRead):
@@ -191,4 +197,4 @@ class PartnershipParticipant(SQLModel, table=True):
     character_id: int = Field(
         foreign_key="character.id", ondelete="CASCADE", primary_key=True
     )
-    role: int = Field(sa_column_args=[CheckConstraint("role IN (1, 2, 3)")])
+    role_code: str = Field(foreign_key="roles.code", ondelete="CASCADE")

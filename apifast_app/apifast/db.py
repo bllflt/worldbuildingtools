@@ -22,7 +22,6 @@ def enable_foreign_keys(engine: Engine):
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
 
-        # restore previous autocommit setting
         dbapi_connection.autocommit = ac
 
 

@@ -77,7 +77,7 @@ SELECT
             'id', c.id,
             'name', c.name,
             'sex', c.sex,
-            'role', pp.role
+            'role', pp.role_code
           )
         )
         FROM partnership_participants pp

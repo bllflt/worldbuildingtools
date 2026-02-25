@@ -1,5 +1,5 @@
 import pytest
-from apifast.model import Ptype, Role, Sex
+from apifast.model import Ptype, RoleCode, Sex
 from fastapi.testclient import TestClient
 
 
@@ -32,10 +32,10 @@ def family_tree_setup(client: TestClient) -> dict[str, int]:
     client.post(
         f"/api/v1/partnerships/{partnership_id}/participants",
         json=[
-            {"character_id": father_id, "role": Role.MATE},
-            {"character_id": mother_id, "role": Role.MATE},
-            {"character_id": child1_id, "role": Role.CHILD},
-            {"character_id": child2_id, "role": Role.CHILD},
+            {"character_id": father_id, "role_code": RoleCode.MATE},
+            {"character_id": mother_id, "role_code": RoleCode.MATE},
+            {"character_id": child1_id, "role_code": RoleCode.CHILD},
+            {"character_id": child2_id, "role_code": RoleCode.CHILD},
         ],
     )
     return {

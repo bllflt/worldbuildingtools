@@ -5,7 +5,7 @@ from apifast.db import enable_foreign_keys, get_db
 from apifast.main import app
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlmodel import Session, SQLModel
+from sqlmodel import Session, SQLModel, insert
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
@@ -19,17 +19,17 @@ enable_foreign_keys(engine)
 @pytest.fixture(scope="function")
 def db_session() -> Generator[Session, None, None]:
     """Creates a clean, independent session for each test."""
-    # 1. Create tables in the test database
     SQLModel.metadata.create_all(bind=engine)
 
     connection = engine.connect()
     transaction = connection.begin()
     session = Session(bind=connection)
+    populate_role(session)
 
     yield session
 
     session.close()
-    transaction.rollback()  # Rolls back all changes made during the test
+    transaction.rollback()
     connection.close()
 
 
@@ -49,3 +49,10 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
     yield TestClient(app)
     # Cleanup: Remove the override after the tests
     del app.dependency_overrides[get_db]
+
+
+def populate_role(session: Session):
+    from apifast.model import Role, RoleCode
+
+    data = [{"code": member.value} for member in RoleCode]
+    session.exec(insert(Role), params=data)
