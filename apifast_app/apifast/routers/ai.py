@@ -8,7 +8,7 @@ from sqlmodel import Session, select
 from apifast.config import config
 from apifast.db import get_db
 from apifast.mdb import get_redis
-from apifast.model import Character, Image
+from apifast.models.model import Character, Image
 
 QUEUE_NAME = "work_queue"
 

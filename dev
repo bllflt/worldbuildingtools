@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+SESSION="dev_env"
+
+# Kill any existing session to avoid conflicts
+screen -S "$SESSION" -X quit 2>/dev/null || true
+
+# 1. Start a new detached session with the first window (Redis)
+screen -dmS "$SESSION" -t redis /usr/local/opt/redis/bin/redis-server /usr/local/etc/redis.conf
+
+# Wait for session to initialize
+sleep 2
+
+# Check if session was created
+if ! screen -ls | grep -q "$SESSION"; then
+    echo "Failed to create screen session '$SESSION'"
+    exit 1
+fi
+
+# 2. Create a new window for FastAPI
+screen -S "$SESSION" -X screen  # Creates window 1 and selects it
+screen -S "$SESSION" -X title fastapi
+screen -S "$SESSION" -X stuff "cd ~/automatic-picture-inserter && source venv/bin/activate && cd apifast_app/apifast && fastapi dev main.py --port 5000\n"
+screen -S "$SESSION" -X select 0  # Select back to window 0 (Redis)
+
+# 3. Create a new window for Frontend
+screen -S "$SESSION" -X screen  # Creates window 2 and selects it
+screen -S "$SESSION" -X title frontend
+screen -S "$SESSION" -X stuff "cd ~/wb-bront && npm run dev\n"
+screen -S "$SESSION" -X select 0  # Select back to window 0 (Redis)
+
+echo "Screen session '$SESSION' created with windows: redis, fastapi, frontend"
+echo "Attach with: screen -r $SESSION"

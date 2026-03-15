@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from sqlmodel import Session
 
 from apifast.db import get_db
-from apifast.model import Character, CharacterRead, CharacterWrite
+from apifast.models.model import Character, CharacterRead, CharacterWrite
 from apifast.services.characters import CharacterQuery, CharacterService
 
 router = APIRouter(

@@ -1,5 +1,5 @@
 import pytest
-from apifast.model import Ptype, RoleCode, Sex
+from apifast.models.enums import Ptype, RoleCode, Sex
 from fastapi.testclient import TestClient
 
 

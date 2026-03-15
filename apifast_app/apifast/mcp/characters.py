@@ -1,5 +1,5 @@
 from apifast.db import get_db_context
-from apifast.model import CharacterRead, CharacterWrite
+from apifast.models.model import CharacterRead, CharacterWrite
 from apifast.services.characters import CharacterQuery, CharacterService
 from fastmcp import FastMCP
 

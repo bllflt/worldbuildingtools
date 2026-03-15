@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from apifast.model import Character, CharacterWrite, Image, Roleplaying
+from apifast.models.model import Character, CharacterWrite, Image, Roleplaying
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 

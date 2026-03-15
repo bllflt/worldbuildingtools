@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session, select
 
 from apifast.db import get_db
-from apifast.model import Partnership, PartnershipWrite, Ptype, SocialConnection
+from apifast.models.model import Partnership, PartnershipWrite, Ptype, SocialConnection
 
 router = APIRouter()
 

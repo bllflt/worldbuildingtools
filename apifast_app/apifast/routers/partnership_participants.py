@@ -3,7 +3,7 @@ from sqlalchemy import text
 from sqlmodel import select
 
 from apifast.db import Session, get_db
-from apifast.model import (
+from apifast.models.model import (
     PartnershipParticipant,
     PartnershipParticipantRead,
     PartnershipParticipantWrite,

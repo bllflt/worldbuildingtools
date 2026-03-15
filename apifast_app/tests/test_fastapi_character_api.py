@@ -1,4 +1,4 @@
-from apifast.model import Character, Image, Roleplaying
+from apifast.models.model import Character, Image, Roleplaying
 from sqlmodel import select
 
 

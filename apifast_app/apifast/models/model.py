@@ -1,4 +1,3 @@
-from enum import Enum, IntEnum
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, computed_field
@@ -6,24 +5,7 @@ from pydantic import Field as PydanticField
 from sqlalchemy import CheckConstraint, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
-
-# ISO/IEC 5218
-class Sex(IntEnum):
-    UNKNOWN = 0
-    MALE = 1
-    FEMALE = 2
-    NA = 9
-
-
-class RoleCode(str, Enum):
-    MATE = "MATE"
-    CHILD = "CHILD"
-    MEMBER = "MEMBER"
-
-
-class Ptype(IntEnum):
-    LIAISON = 1
-    FACTION = 2
+from apifast.models.enums import Ptype, RoleCode, Sex
 
 
 class CharacterBase(BaseModel):

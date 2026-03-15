@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy import text
 
 from apifast.db import Session, get_db
-from apifast.model import SocialConnection
+from apifast.models.model import SocialConnection
 
 router = APIRouter(
     tags=["characters"],

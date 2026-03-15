@@ -1,4 +1,4 @@
-from apifast.model import Ptype, RoleCode, Sex
+from apifast.models.model import Ptype, RoleCode, Sex
 
 pytest_plugins = ("tests.conftest_char_connections",)
 

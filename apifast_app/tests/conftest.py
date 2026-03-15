@@ -16,15 +16,23 @@ engine = create_engine(
 enable_foreign_keys(engine)
 
 
-@pytest.fixture(scope="function")
-def db_session() -> Generator[Session, None, None]:
-    """Creates a clean, independent session for each test."""
+@pytest.fixture(scope="session")
+def db_setup():
+    """Set up the DB and tables once per test session."""
     SQLModel.metadata.create_all(bind=engine)
+    with Session(engine) as session:
+        populate_role(session)
+        session.commit()
+    yield
+    SQLModel.metadata.drop_all(bind=engine)
 
+
+@pytest.fixture(scope="function")
+def db_session(db_setup) -> Generator[Session, None, None]:
+    """Creates a clean, independent session for each test."""
     connection = engine.connect()
     transaction = connection.begin()
     session = Session(bind=connection)
-    populate_role(session)
 
     yield session
 
@@ -52,7 +60,7 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
 
 
 def populate_role(session: Session):
-    from apifast.model import Role, RoleCode
+    from apifast.models.model import Role, RoleCode
 
     data = [{"code": member.value} for member in RoleCode]
     session.exec(insert(Role), params=data)
