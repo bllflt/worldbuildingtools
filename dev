@@ -29,5 +29,11 @@ screen -S "$SESSION" -X title frontend
 screen -S "$SESSION" -X stuff "cd ~/wb-bront && npm run dev\n"
 screen -S "$SESSION" -X select 0  # Select back to window 0 (Redis)
 
-echo "Screen session '$SESSION' created with windows: redis, fastapi, frontend"
+# 4. Create a new window for LLM Proxy
+screen -S "$SESSION" -X screen  # Creates window 1 and selects it
+screen -S "$SESSION" -X title llm_proxy 
+screen -S "$SESSION" -X stuff "cd ~/llm_proxy && source venv/bin/activate && cd lm_proxy/app && fastapi dev main.py --port 4000\n"
+screen -S "$SESSION" -X select 0  # Select back to window 0 (Redis)
+
+echo "Screen session '$SESSION' created with windows: redis, fastapi, llm_proxy, frontend"
 echo "Attach with: screen -r $SESSION"
