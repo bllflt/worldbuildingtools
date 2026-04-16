@@ -1,9 +1,11 @@
+import logging
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 
 import httpx
-from fastapi import APIRouter, Request
-
+import jwt
 from apifast.config import config
+from fastapi import APIRouter
 
 router = APIRouter()
 
@@ -21,15 +23,27 @@ class ServerMessage:
 @router.post("/chat/conversation")
 async def get_client_message(
     message: ClientMessage,
-    request=Request,
 ) -> ServerMessage | None:
+    logging.error(f"Received client message: {message}")
+
+    # Generate JWT token
+    payload = {
+        "sub": "apifast",
+        "exp": datetime.now() + timedelta(hours=1),
+    }
+    token = jwt.encode(payload, config.jwt_secret, algorithm="HS256")
+
     try:
         url = f"{config.llm_proxy_url}/api/v1/chat/message"
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                url, json={"user_id": 1, "message": message.content}, timeout=30.0
+                url,
+                json={"content": message.content},
+                headers={"Authorization": f"Bearer {token}"},
+                timeout=30.0,
             )
             response.raise_for_status()
+            logging.error(f"LLM proxy response: {response}")
             data = response.json()
             return ServerMessage(assistant=data["assistant"])
     except Exception:

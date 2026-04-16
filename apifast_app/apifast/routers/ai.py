@@ -1,14 +1,16 @@
 import json
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, status
-from sqlmodel import Session, select
-
+import httpx
+import jwt
 from apifast.config import config
 from apifast.db import get_db
 from apifast.mdb import get_redis
 from apifast.models.model import Character, Image
+from fastapi import APIRouter, Depends, status
+from sqlmodel import Session, select
 
 QUEUE_NAME = "work_queue"
 
@@ -42,16 +44,32 @@ async def enque_caption_work(
     )
     current_description = session.get(Character, character_id).appearance
     image_file = Path(config.image_dir).joinpath(data.image)
-    await redis.lpush(
-        QUEUE_NAME,
-        json.dumps(
-            {
-                "image_file": str(image_file),
-                "current_description": current_description,
-                "character_id": character_id,
-            }
-        ),
-    )
+
+    # Generate JWT token
+    payload = {
+        "sub": "apifast",
+        "exp": datetime.utcnow() + timedelta(hours=1),
+    }
+    token = jwt.encode(payload, config.jwt_secret, algorithm="HS256")
+
+    url = f"{config.llm_proxy_url}/api/v1/captions"
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                url,
+                json={
+                    "character_id": str(character_id),
+                    "image_file": str(image_file),
+                    "current_description": current_description,
+                },
+                headers={"Authorization": f"Bearer {token}"},
+                timeout=30.0,
+            )
+            print(response.json())
+    except httpx.RequestError as exc:
+        print(f"An error occurred while requesting {exc.request.url!r}.")
+        print(client.requst)
+        raise
 
 
 @router.put("/ai/work/caption/complete", status_code=status.HTTP_202_ACCEPTED)

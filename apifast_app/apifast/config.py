@@ -1,10 +1,5 @@
-from pathlib import Path
-
+from dotenv import find_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-# Go up three levels from this file to get to the project root
-# apifast_app/apifast/config.py -> apifast_app/apifast -> apifast_app -> project root
-env_path = Path(__file__).parent.parent.parent / ".env"
 
 
 class Config(BaseSettings):
@@ -12,7 +7,8 @@ class Config(BaseSettings):
     database_uri: str
     redis_uri: str
     llm_proxy_url: str
-    model_config = SettingsConfigDict(env_file=env_path)
+    jwt_secret: str
+    model_config = SettingsConfigDict(env_file=find_dotenv())
 
 
 config = Config()
