@@ -118,8 +118,6 @@ class SocialNetwork(BaseModel):
 
 class Liaison(SocialNetwork):
     type: Literal[Ptype.LIAISON] = Field(default=Ptype.LIAISON, description="A liaison")
-    is_primary: bool = Field(default=False, description="Is this a primary liaison")
-    legitimate: bool = Field(default=False, description="Is this a legitimate liaison")
 
 
 class Faction(SocialNetwork):
@@ -134,8 +132,6 @@ class PartnershipBase(BaseModel):
     type: Ptype
     start_date: str | None = Field(default=None)
     end_date: str | None = Field(default=None)
-    is_primary: bool | None = Field(default=False)
-    legitimate: bool | None = Field(default=False)
     name: str | None = Field(default=None)
 
 

@@ -22,12 +22,14 @@ def get_character_id_list() -> list[tuple[str, int]]:
 
 
 @mcp.tool()
-def get_character_detail(char_id: int) -> CharacterRead:
+def get_character_summary(
+    character_id: int,
+) -> CharacterRead:
     """
-    Get the details of a character with the given ID.
+    Get the general summary of a character with the given ID.
     """
     with get_db_context() as session:
-        char = CharacterService.get_character_by_id(session, char_id)
+        char = CharacterService.get_character_by_id(session, character_id)
         return CharacterRead.model_validate(char)
 
 

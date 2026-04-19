@@ -5,14 +5,13 @@ from pathlib import Path
 
 import httpx
 import jwt
+from fastapi import APIRouter, Depends, status
+from sqlmodel import Session, select
+
 from apifast.config import config
 from apifast.db import get_db
 from apifast.mdb import get_redis
 from apifast.models.model import Character, Image
-from fastapi import APIRouter, Depends, status
-from sqlmodel import Session, select
-
-QUEUE_NAME = "work_queue"
 
 router = APIRouter()
 
@@ -32,7 +31,6 @@ class CaptionJobResult:
 @router.put("/ai/work/caption/request", status_code=status.HTTP_202_ACCEPTED)
 async def enque_caption_work(
     data: CaptionJobRequest,
-    redis=Depends(get_redis),
     session: Session = Depends(get_db),
 ):
     character_id = (

@@ -4,8 +4,9 @@ from datetime import datetime, timedelta
 
 import httpx
 import jwt
-from apifast.config import config
 from fastapi import APIRouter
+
+from apifast.config import config
 
 router = APIRouter()
 
@@ -43,7 +44,7 @@ async def get_client_message(
                 timeout=30.0,
             )
             response.raise_for_status()
-            logging.error(f"LLM proxy response: {response}")
+            logging.debug(f"LLM proxy response: {response}")
             data = response.json()
             return ServerMessage(assistant=data["assistant"])
     except Exception:

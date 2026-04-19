@@ -9,8 +9,6 @@ class TestCharacterConnections:
         assert resp.status_code == 200
         assert resp.json() == {
             "type": int(Ptype.LIAISON),
-            "is_primary": True,
-            "legitimate": True,
             "start_date": None,
             "end_date": None,
             "name": None,
@@ -53,8 +51,6 @@ class TestCharacterConnections:
             {
                 "id": family_tree_setup["partnership_id"],
                 "type": int(Ptype.LIAISON),
-                "is_primary": True,
-                "legitimate": True,
                 "start_date": None,
                 "end_date": None,
                 "participants": [

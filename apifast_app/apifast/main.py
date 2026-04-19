@@ -1,9 +1,8 @@
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastmcp import FastMCP
 
+from apifast.mcp.character_connections import mcp as mcp_character_connections
 from apifast.mcp.characters import mcp as mcp_characters
 from apifast.routers import (
     ai,
@@ -17,23 +16,11 @@ from apifast.routers import (
 )
 
 mcp = FastMCP("My App MCP")
+mcp.mount(mcp_characters)
+mcp.mount(mcp_character_connections)
 mcp_app = mcp.http_app("/")
 
-
-@asynccontextmanager
-async def app_lifespan(_fastapi_app: FastAPI):
-    await mcp.import_server(mcp_characters, prefix="characters")
-    yield
-
-
-@asynccontextmanager
-async def combined_lifespan(fastapi_app: FastAPI):
-    async with app_lifespan(fastapi_app):
-        async with mcp_app.lifespan(fastapi_app):
-            yield
-
-
-app = FastAPI(lifespan=combined_lifespan)
+app = FastAPI(lifespan=mcp_app.lifespan)
 app.mount("/mcp", mcp_app)
 
 app.add_middleware(
@@ -41,7 +28,9 @@ app.add_middleware(
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
+    # MCP Inspector needs to access the session ID header to correlate requests with MCP sessions
+    expose_headers=["mcp-session-id"],
 )
 
 app.include_router(characters.router, prefix="/api/v1")
