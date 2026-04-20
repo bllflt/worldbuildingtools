@@ -20,7 +20,8 @@ class CharacterBase(BaseModel):
             Aim for a pithy, high-impact description suitable for narrative or visual applications.
             """,
     )
-    sex: Literal[0, 1, 2, 9] = PydanticField(
+    # XXX Why doesn't overriding sex in CharacterReadMCP work?
+    sex: int = PydanticField(
         default=Sex.NA,
         description="ISO/IEC 5218 encoding: 0=Unknown, 1=male, 2=female, 9=N/A",
     )
@@ -63,6 +64,18 @@ class CharacterRead(CharacterBase):
     @property
     def images(self) -> list[str]:
         return [i.uri for i in self.image_attributes]
+
+
+# The MCP version of CharacterRead with sex as a string for better compatibility with LLMs
+# https://github.com/PrefectHQ/fastmcp/issues/1159
+# FastMCP and Pydantic serialize numeric enums as integers.
+# While the MCP Inspector can handle these, the Gemini API does not support data types other
+# than strings for enums.
+class CharacterReadMCP(CharacterRead):
+    sex: int = PydanticField(
+        default=Sex.NA,
+        description="ISO/IEC 5218 encoding as string: 0=Unknown, 1=male, 2=female, 9=N/A",
+    )
 
 
 class CharacterWrite(CharacterBase):

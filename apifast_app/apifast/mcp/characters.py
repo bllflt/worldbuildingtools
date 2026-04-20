@@ -1,5 +1,5 @@
 from apifast.db import get_db_context
-from apifast.models.model import CharacterRead, CharacterWrite
+from apifast.models.model import CharacterReadMCP, CharacterWrite
 from apifast.services.characters import CharacterQuery, CharacterService
 from fastmcp import FastMCP
 
@@ -24,13 +24,13 @@ def get_character_id_list() -> list[tuple[str, int]]:
 @mcp.tool()
 def get_character_summary(
     character_id: int,
-) -> CharacterRead:
+) -> CharacterReadMCP:
     """
     Get the general summary of a character with the given ID.
     """
     with get_db_context() as session:
         char = CharacterService.get_character_by_id(session, character_id)
-        return CharacterRead.model_validate(char)
+        return CharacterReadMCP.model_validate(char)
 
 
 @mcp.tool()
@@ -50,13 +50,13 @@ def search_character_by_name_substring(name_substring: str) -> list[tuple[str, i
 
 
 @mcp.tool()
-def add_character(character: CharacterWrite) -> CharacterRead:
+def add_character(character: CharacterWrite) -> CharacterReadMCP:
     """
     Add a new character.
     """
     with get_db_context() as session:
         char = CharacterService.create_character(session, character)
-        return CharacterRead.model_validate(char)
+        return CharacterReadMCP.model_validate(char)
 
 
 @mcp.tool()

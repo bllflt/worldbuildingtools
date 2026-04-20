@@ -28,6 +28,7 @@ class TestMCPCharacterTools:
                     Roleplaying(characteristic="Test Characteristic 1"),
                     Roleplaying(characteristic="Test Characteristic 2"),
                 ],
+                sex=Sex.NA,
             )
 
             result = await main_mcp_client.call_tool(
