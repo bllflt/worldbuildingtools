@@ -1,7 +1,12 @@
+import logging
 import shutil
 import uuid
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
 
+import httpx
+import jwt
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlmodel import Session
@@ -51,3 +56,34 @@ async def upload_character_image(
     session.commit()
 
     return {"filename": safe_name}
+
+
+@dataclass(slots=True)
+class ImageJobRequest:
+    character_id: str
+
+
+@router.post("/characters/generate-image")
+async def generate_character_image(message: ImageJobRequest) -> None:
+
+    # Generate JWT token
+    payload = {
+        "sub": "apifast",
+        "exp": datetime.now() + timedelta(hours=1),
+    }
+    token = jwt.encode(payload, config.jwt_secret, algorithm="HS256")
+
+    try:
+        url = f"{config.llm_proxy_url}/api/v1/images"
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                url,
+                json={
+                    "character_id": str(message.character_id),
+                },
+                headers={"Authorization": f"Bearer {token}"},
+            )
+            response.raise_for_status()
+            logging.debug(f"LLM proxy response: {response}")
+    except Exception:
+        return None

@@ -25,7 +25,7 @@ class ServerMessage:
 async def get_client_message(
     message: ClientMessage,
 ) -> ServerMessage | None:
-    logging.error(f"Received client message: {message}")
+    logging.info(f"Received client message: {message}")
 
     # Generate JWT token
     payload = {
