@@ -1,3 +1,4 @@
+import json
 import logging
 import shutil
 import uuid
@@ -7,13 +8,14 @@ from pathlib import Path
 
 import httpx
 import jwt
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
-from fastapi.responses import FileResponse
-from sqlmodel import Session
-
 from apifast.config import config
 from apifast.db import get_db
+from apifast.mdb import get_redis
 from apifast.models.model import Character, Image
+from fastapi import (APIRouter, Depends, File, Form, HTTPException, UploadFile,
+                     status)
+from fastapi.responses import FileResponse
+from sqlmodel import Session
 
 router = APIRouter()
 
@@ -32,6 +34,7 @@ async def upload_character_image(
     ),
     image: UploadFile = File(..., description="The image file to upload"),
     session: Session = Depends(get_db),
+    redis=Depends(get_redis),
 ):
     # Verify character existence
     character = session.get(Character, character_id)
@@ -54,6 +57,17 @@ async def upload_character_image(
     db_image = Image(character_id=character_id, uri=safe_name)
     session.add(db_image)
     session.commit()
+
+    await redis.publish(
+        f"{character_id}",
+        json.dumps(
+            {
+                "topic": "image",
+                "filename": safe_name,
+            }
+        )
+    )
+
 
     return {"filename": safe_name}
 
@@ -83,7 +97,7 @@ async def generate_character_image(message: ImageJobRequest) -> None:
                 },
                 headers={"Authorization": f"Bearer {token}"},
             )
-            response.raise_for_status()
             logging.debug(f"LLM proxy response: {response}")
+            response.raise_for_status()
     except Exception:
         return None

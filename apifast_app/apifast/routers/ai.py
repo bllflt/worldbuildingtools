@@ -82,6 +82,8 @@ async def process_caption_result(
             f"{data.character_id}",
             json.dumps(
                 {
+                    "topic": "reconcile",
+                    "character_id": data.character_id,
                     "explanation": data.explanation,
                     "new_description": data.merge,
                 }
