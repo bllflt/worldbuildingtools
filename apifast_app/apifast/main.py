@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastmcp import FastMCP
 
@@ -6,6 +6,7 @@ from apifast.mcp.character_connections import mcp as mcp_character_connections
 from apifast.mcp.characters import mcp as mcp_characters
 from apifast.routers import (
     ai,
+    auth,
     character_connections,
     characters,
     chat,
@@ -25,7 +26,11 @@ app.mount("/mcp", mcp_app)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://[::1]:3000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,14 +38,33 @@ app.add_middleware(
     expose_headers=["mcp-session-id"],
 )
 
-app.include_router(characters.router, prefix="/api/v1")
-app.include_router(character_connections.router, prefix="/api/v1")
-app.include_router(partnerships.router, prefix="/api/v1")
-app.include_router(partnership_participants.router, prefix="/api/v1")
+app.include_router(auth.router, prefix="/api/v1")
+app.include_router(
+    characters.router, prefix="/api/v1", dependencies=[Depends(auth.get_current_user)]
+)
+app.include_router(
+    character_connections.router,
+    prefix="/api/v1",
+    dependencies=[Depends(auth.get_current_user)],
+)
+app.include_router(
+    partnerships.router, prefix="/api/v1", dependencies=[Depends(auth.get_current_user)]
+)
+app.include_router(
+    partnership_participants.router,
+    prefix="/api/v1",
+    dependencies=[Depends(auth.get_current_user)],
+)
 
-app.include_router(ai.router, prefix="/api/v1")
-app.include_router(events.router, prefix="/api/v1")
+app.include_router(
+    ai.router, prefix="/api/v1", dependencies=[Depends(auth.get_current_user)]
+)
+app.include_router(
+    events.router, prefix="/api/v1", dependencies=[Depends(auth.get_current_user)]
+)
 
-app.include_router(chat.router, prefix="/api/v1")
+app.include_router(
+    chat.router, prefix="/api/v1", dependencies=[Depends(auth.get_current_user)]
+)
 
-app.include_router(images.router)
+app.include_router(images.router, dependencies=[Depends(auth.get_current_user)])

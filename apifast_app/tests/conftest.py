@@ -3,6 +3,7 @@ from typing import Generator
 import pytest
 from apifast.db import enable_foreign_keys, get_db
 from apifast.main import app
+from apifast.routers.auth import get_current_user
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlmodel import Session, SQLModel, insert
@@ -53,10 +54,14 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
             # Note: No session.close() here as it's handled by db_session cleanup
             pass
 
+    def override_get_current_user():
+        return "test_user"
+
+    app.dependency_overrides[get_current_user] = override_get_current_user
     app.dependency_overrides[get_db] = override_get_db
     yield TestClient(app)
-    # Cleanup: Remove the override after the tests
-    del app.dependency_overrides[get_db]
+    # Cleanup: Remove the overrides after the tests
+    app.dependency_overrides.clear()
 
 
 def populate_role(session: Session):
