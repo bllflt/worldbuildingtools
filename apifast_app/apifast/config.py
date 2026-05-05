@@ -8,6 +8,7 @@ class Config(BaseSettings):
     redis_uri: str
     llm_proxy_url: str
     jwt_secret: str
+    jwt_token_ttl: int
     model_config = SettingsConfigDict(env_file=find_dotenv())
 
 

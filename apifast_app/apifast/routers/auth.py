@@ -49,7 +49,7 @@ async def login(request: LoginRequest, response: Response) -> dict[str, str]:
     payload = {
         "sub": request.username,
         "exp": datetime.now(timezone.utc)
-        + timedelta(hours=1),  # datetime.utcnow() is deprecated
+        + timedelta(hours=config.jwt_token_ttl),  # datetime.utcnow() is deprecated
     }
     token = jwt.encode(payload, config.jwt_secret, algorithm="HS256")
 
