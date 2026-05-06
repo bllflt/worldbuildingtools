@@ -1,11 +1,10 @@
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 
 import httpx
-import jwt
 from fastapi import APIRouter
 
+from apifast.auth.jwt import create_access_token
 from apifast.config import config
 
 router = APIRouter()
@@ -27,15 +26,9 @@ async def get_client_message(
 ) -> ServerMessage | None:
     logging.info(f"Received client message: {message}")
 
-    # Generate JWT token
-    payload = {
-        "sub": "apifast",
-        "exp": datetime.now() + timedelta(hours=1),
-    }
-    token = jwt.encode(payload, config.jwt_secret, algorithm="HS256")
-
+    url = f"{config.llm_proxy_url}/api/v1/chat/message"
+    token = create_access_token({"sub": "apifast"})
     try:
-        url = f"{config.llm_proxy_url}/api/v1/chat/message"
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 url,
@@ -53,15 +46,10 @@ async def get_client_message(
 
 @router.post("/chat/get_history")
 async def get_client_history():
-    # Generate JWT token
-    payload = {
-        "sub": "apifast",
-        "exp": datetime.now() + timedelta(hours=1),
-    }
-    token = jwt.encode(payload, config.jwt_secret, algorithm="HS256")
 
+    token = create_access_token({"sub": "apifast"})
+    url = f"{config.llm_proxy_url}/api/v1/chat/get_history"
     try:
-        url = f"{config.llm_proxy_url}/api/v1/chat/get_history"
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 url,

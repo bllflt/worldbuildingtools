@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 import jwt
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import APIKeyCookie, HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 

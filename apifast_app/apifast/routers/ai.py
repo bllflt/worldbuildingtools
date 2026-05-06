@@ -1,10 +1,9 @@
 import json
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from pathlib import Path
 
 import httpx
-import jwt
+from apifast.auth.jwt import create_access_token
 from fastapi import APIRouter, Depends, status
 from sqlmodel import Session, select
 
@@ -43,13 +42,7 @@ async def enque_caption_work(
     current_description = session.get(Character, character_id).appearance
     image_file = Path(config.image_dir).joinpath(data.image)
 
-    # Generate JWT token
-    payload = {
-        "sub": "apifast",
-        "exp": datetime.utcnow() + timedelta(hours=1),
-    }
-    token = jwt.encode(payload, config.jwt_secret, algorithm="HS256")
-
+    token = create_access_token({"sub": "apifast"})
     url = f"{config.llm_proxy_url}/api/v1/captions"
     try:
         async with httpx.AsyncClient() as client:

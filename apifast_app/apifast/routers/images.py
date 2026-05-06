@@ -3,19 +3,18 @@ import logging
 import shutil
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from pathlib import Path
 
 import httpx
-import jwt
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi.responses import FileResponse
+from sqlmodel import Session
+
+from apifast.auth.jwt import create_access_token
 from apifast.config import config
 from apifast.db import get_db
 from apifast.mdb import get_redis
 from apifast.models.model import Character, Image
-from fastapi import (APIRouter, Depends, File, Form, HTTPException, UploadFile,
-                     status)
-from fastapi.responses import FileResponse
-from sqlmodel import Session
 
 router = APIRouter()
 
@@ -65,9 +64,8 @@ async def upload_character_image(
                 "topic": "image",
                 "filename": safe_name,
             }
-        )
+        ),
     )
-
 
     return {"filename": safe_name}
 
@@ -80,15 +78,9 @@ class ImageJobRequest:
 @router.post("/characters/generate-image")
 async def generate_character_image(message: ImageJobRequest) -> None:
 
-    # Generate JWT token
-    payload = {
-        "sub": "apifast",
-        "exp": datetime.now() + timedelta(hours=1),
-    }
-    token = jwt.encode(payload, config.jwt_secret, algorithm="HS256")
-
+    url = f"{config.llm_proxy_url}/api/v1/images"
+    token = create_access_token({"sub": "apifast"})
     try:
-        url = f"{config.llm_proxy_url}/api/v1/images"
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 url,
