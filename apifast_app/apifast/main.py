@@ -2,6 +2,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastmcp import FastMCP
 
+from apifast.config import config
 from apifast.mcp.character_connections import mcp as mcp_character_connections
 from apifast.mcp.characters import mcp as mcp_characters
 from apifast.modules.auth import router as auth
@@ -27,11 +28,7 @@ app.mount("/mcp", mcp_app)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://[::1]:3000",
-    ],
+    allow_origins=config.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
