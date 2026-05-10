@@ -4,9 +4,10 @@ from fastmcp import FastMCP
 
 from apifast.mcp.character_connections import mcp as mcp_character_connections
 from apifast.mcp.characters import mcp as mcp_characters
+from apifast.modules.auth import router as auth
+from apifast.modules.auth.service import get_current_user
 from apifast.routers import (
     ai,
-    auth,
     character_connections,
     characters,
     chat,
@@ -40,31 +41,31 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(
-    characters.router, prefix="/api/v1", dependencies=[Depends(auth.get_current_user)]
+    characters.router, prefix="/api/v1", dependencies=[Depends(get_current_user)]
 )
 app.include_router(
     character_connections.router,
     prefix="/api/v1",
-    dependencies=[Depends(auth.get_current_user)],
+    dependencies=[Depends(get_current_user)],
 )
 app.include_router(
-    partnerships.router, prefix="/api/v1", dependencies=[Depends(auth.get_current_user)]
+    partnerships.router, prefix="/api/v1", dependencies=[Depends(get_current_user)]
 )
 app.include_router(
     partnership_participants.router,
     prefix="/api/v1",
-    dependencies=[Depends(auth.get_current_user)],
+    dependencies=[Depends(get_current_user)],
 )
 
 app.include_router(
-    ai.router, prefix="/api/v1", dependencies=[Depends(auth.get_current_user)]
+    ai.router, prefix="/api/v1", dependencies=[Depends(get_current_user)]
 )
 app.include_router(
-    events.router, prefix="/api/v1", dependencies=[Depends(auth.get_current_user)]
+    events.router, prefix="/api/v1", dependencies=[Depends(get_current_user)]
 )
 
 app.include_router(
-    chat.router, prefix="/api/v1", dependencies=[Depends(auth.get_current_user)]
+    chat.router, prefix="/api/v1", dependencies=[Depends(get_current_user)]
 )
 
-app.include_router(images.router, dependencies=[Depends(auth.get_current_user)])
+app.include_router(images.router, dependencies=[Depends(get_current_user)])

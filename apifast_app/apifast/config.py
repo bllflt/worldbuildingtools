@@ -9,6 +9,7 @@ class Config(BaseSettings):
     llm_proxy_url: str
     jwt_secret: str
     jwt_token_ttl: int
+    cookie_expire: int = 3600
     model_config = SettingsConfigDict(env_file=find_dotenv())
 
 
