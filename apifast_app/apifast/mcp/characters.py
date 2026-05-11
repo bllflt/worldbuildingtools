@@ -62,7 +62,9 @@ def add_character(character: CharacterWrite) -> CharacterReadMCP:
 @mcp.tool()
 def update_character(char_id: int, character: CharacterWrite) -> None:
     """
-    Updates a character. Full update (PUT). If only some fields are provided, automatically fill missing fields with the current character values to avoid data loss.
+    Updates a character. You must adopt full-resource replacement semantics.
+    Constraint: You must resubmit all fields from the original object, even if they remain unchanged.
+    Do not assume fields are preserved if omitted.
     """
     with get_db_context() as session:
         CharacterService.update_character(session, char_id, character)
