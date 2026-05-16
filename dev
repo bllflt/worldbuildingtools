@@ -20,7 +20,7 @@ fi
 # 2. Create a new window for FastAPI
 screen -S "$SESSION" -X screen  # Creates window 1 and selects it
 screen -S "$SESSION" -X title fastapi
-screen -S "$SESSION" -X stuff "cd ~/automatic-picture-inserter && source venv/bin/activate && cd apifast_app/apifast && fastapi dev main.py --port 5000\n"
+screen -S "$SESSION" -X stuff "cd ~/automatic-picture-inserter && source venv/bin/activate && cd apifast_app/apifast && fastapi dev main.py --port 2000\n"
 screen -S "$SESSION" -X select 0  # Select back to window 0 (Redis)
 
 # 3. Create a new window for Frontend
@@ -38,9 +38,8 @@ screen -S "$SESSION" -X select 0  # Select back to window 0 (Redis)
 # 5. Create a new window for nginx
 screen -S "$SESSION" -X sceen   # Creates window 4 and selects it
 screen -S "$SESSION" -X title nginx
-screen -S "$SESSION" -X stuff "cd ~/nginx && /usr/local/opt/nginx/bin/nginx -c ~/nginx/nginx.conf -g 'daemon off;'
+screen -S "$SESSION" -X stuff "cd ~/nginx && /usr/local/opt/nginx/bin/nginx -c ~/nginx/nginx.conf -g 'daemon off;'"
 screen -S "$SESSION" -X select 0   # Select back to window 0 (Redis)
-
 
 echo "Screen session '$SESSION' created with windows: redis, fastapi, llm_proxy, frontend"
 echo "Attach with: screen -r $SESSION"

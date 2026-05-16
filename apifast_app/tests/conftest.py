@@ -3,7 +3,7 @@ from typing import Generator
 import pytest
 from apifast.db import enable_foreign_keys, get_db
 from apifast.main import app
-from apifast.routers.auth import get_current_user
+from apifast.modules.auth.service import get_current_user
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlmodel import Session, SQLModel, insert

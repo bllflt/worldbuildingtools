@@ -4,16 +4,17 @@ import pytest
 from apifast.main import mcp
 from apifast.models.enums import Ptype, RoleCode, Sex
 from apifast.models.model import Character, Roleplaying
-from fastmcp.client import Client
+from fastmcp import Client
 from fastmcp.client.transports import FastMCPTransport
 
 
 @pytest.fixture
-async def main_mcp_client(db_session) -> Client[FastMCPTransport]:  #
+async def main_mcp_client(db_session) -> Client[FastMCPTransport]:
     async with Client(mcp) as client:
         yield client
 
 
+@pytest.mark.asyncio
 class TestMCPCharacterTools:
     async def test_mcp_characters(self, main_mcp_client: Client[FastMCPTransport]):
         with patch(
