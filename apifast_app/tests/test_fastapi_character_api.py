@@ -2,7 +2,7 @@ from apifast.models.model import Character, Image, Roleplaying
 from sqlmodel import select
 
 
-class TestCharacterApi:
+class TestCharacterApiGet:
     def test_get_characters(self, db_session, client):
         graurog = Character(
             name="Graurog",
@@ -54,6 +54,79 @@ class TestCharacterApi:
         ]
         assert sorted_data == expected_data
 
+    def test_get_w_image(self, db_session, client):
+        graurog = Character(name="Graurog", appearance=None, background=None)
+        graurog.image_attributes = [
+            Image(uri="moo1.png"),
+            Image(uri="moo2.png"),
+        ]
+
+        db_session.add_all([graurog])
+        db_session.commit()
+
+        response = client.get("/api/v1/characters/1")
+        assert response.json() == {
+            "appearance": None,
+            "background": None,
+            "id": 1,
+            "sex": 9,
+            "roleplaying": [],
+            "images": ["moo1.png", "moo2.png"],
+            "name": "Graurog",
+        }
+
+    def test_get_error_no_exist(self, client):
+        response = client.get("/api/v1/characters/1")
+
+        assert response.status_code == 404
+        assert response.json() == {"detail": "Character with id 1 not found"}
+
+    def test_sorted_by_name(self, db_session, client):
+        a = Character(name="a")
+        b = Character(name="b")
+        c = Character(name="c")
+        db_session.add_all([c, b, a])
+        db_session.commit()
+
+        got = client.get("/api/v1/characters?sort=name").json()
+        got = list(map(lambda x: x["name"], got))
+        assert got == ["a", "b", "c"]
+
+    def test_filtered_by_name(self, db_session, client):
+        a = Character(name="a")
+        b = Character(name="b")
+        c = Character(name="c")
+        bill = Character(name="bill")
+        billy = Character(name="billy")
+        ybill = Character(name="ybill")
+        db_session.add_all([c, b, a, bill, billy, ybill])
+        db_session.commit()
+
+        got = client.get("/api/v1/characters?sort=name&name=bill").json()
+        got = list(map(lambda x: x["name"], got))
+        assert got == ["bill", "billy", "ybill"]
+
+    def test_fields(self, db_session, client):
+        a = Character(name="a", appearance="app_a", background="bg_a")
+        b = Character(name="b", appearance="app_b", background="bg_b")
+        c = Character(name="c", appearance="app_c", background="bg_c")
+        db_session.add_all([c, b, a])
+        db_session.commit()
+
+        got = client.get("/api/v1/characters?fields=id,name").json()
+        assert sorted(got, key=lambda x: x["name"]) == [
+            {"id": 3, "name": "a"},
+            {"id": 2, "name": "b"},
+            {"id": 1, "name": "c"},
+        ], got
+
+    def test_fields_error(self, client):
+        response = client.get("/api/v1/characters?fields=mu,nil")
+        assert response.status_code == 400
+        assert "Invalid fields requested" in response.json()["detail"]
+
+
+class TestCharacterApiPost:
     def test_post_character(self, db_session, client):
         response = client.post(
             "/api/v1/characters",
@@ -79,6 +152,8 @@ class TestCharacterApi:
         ).one()
         assert got is not None
 
+
+class TestCharacterApiPut:
     def test_put_character(self, db_session, client):
         client.post(
             "/api/v1/characters",
@@ -146,119 +221,6 @@ class TestCharacterApi:
             is None
         )
 
-    def test_get_w_image(self, db_session, client):
-        graurog = Character(name="Graurog", appearance=None, background=None)
-        graurog.image_attributes = [
-            Image(uri="moo1.png"),
-            Image(uri="moo2.png"),
-        ]
-
-        db_session.add_all([graurog])
-        db_session.commit()
-
-        response = client.get("/api/v1/characters/1")
-        assert response.json() == {
-            "appearance": None,
-            "background": None,
-            "id": 1,
-            "sex": 9,
-            "roleplaying": [],
-            "images": ["moo1.png", "moo2.png"],
-            "name": "Graurog",
-        }
-
-    def test_get_error_no_exist(self, client):
-        response = client.get("/api/v1/characters/1")
-
-        assert response.status_code == 404
-        assert response.json() == {"detail": "Character with id 1 not found"}
-
-    def test_delete(self, db_session, client):
-        graurog = Character(
-            name="Graurog",
-            appearance="Female Ogrillon (Orc-Ogre)",
-            background=None,
-            roleplaying_attributes=[
-                Roleplaying(characteristic="Blunt and direct"),
-                Roleplaying(characteristic="Loyal and protective"),
-            ],
-        )
-        cinsora = Character(
-            name="Cinsora",
-            appearance="Dragonborne",
-            background=None,
-            roleplaying_attributes=[
-                Roleplaying(characteristic="Charming but unrefined"),
-                Roleplaying(characteristic="Collects trinkets"),
-            ],
-        )
-        db_session.add_all([graurog, cinsora])
-        db_session.commit()
-
-        response = client.delete("/api/v1/characters/1")
-        assert response.status_code == 204
-
-        db_session.expire_all()
-        gaurog = db_session.exec(
-            select(Character).where(Character.name == "Graurog")
-        ).first()
-        assert gaurog is None
-
-        roleplaying = db_session.exec(
-            select(Roleplaying).where(Roleplaying.character_id == 1)
-        ).all()
-        assert roleplaying == []
-
-    def test_delete_not_found(self, client):
-        response = client.delete("/api/v1/characters/999")
-        assert response.status_code == 404
-        assert response.json() == {"detail": "Character with id 999 not found"}
-
-    def test_sorted_by_name(self, db_session, client):
-        a = Character(name="a")
-        b = Character(name="b")
-        c = Character(name="c")
-        db_session.add_all([c, b, a])
-        db_session.commit()
-
-        got = client.get("/api/v1/characters?sort=name").json()
-        got = list(map(lambda x: x["name"], got))
-        assert got == ["a", "b", "c"]
-
-    def test_filtered_by_name(self, db_session, client):
-        a = Character(name="a")
-        b = Character(name="b")
-        c = Character(name="c")
-        bill = Character(name="bill")
-        billy = Character(name="billy")
-        ybill = Character(name="ybill")
-        db_session.add_all([c, b, a, bill, billy, ybill])
-        db_session.commit()
-
-        got = client.get("/api/v1/characters?sort=name&name=bill").json()
-        got = list(map(lambda x: x["name"], got))
-        assert got == ["bill", "billy", "ybill"]
-
-    def test_fields(self, db_session, client):
-        a = Character(name="a", appearance="app_a", background="bg_a")
-        b = Character(name="b", appearance="app_b", background="bg_b")
-        c = Character(name="c", appearance="app_c", background="bg_c")
-        db_session.add_all([c, b, a])
-        db_session.commit()
-
-        got = client.get("/api/v1/characters?fields=id,name").json()
-        assert sorted(got, key=lambda x: x["name"]) == [
-            {"id": 3, "name": "a"},
-            {"id": 2, "name": "b"},
-            {"id": 1, "name": "c"},
-        ], got
-
-    def test_fields_error(self, client):
-        response = client.get("/api/v1/characters?fields=mu,nil")
-        assert response.status_code == 400
-        # The order of invalid fields from a set is not guaranteed
-        assert "Invalid fields requested" in response.json()["detail"]
-
     def test_no_excessive_cascade_image_roleplaying(self, db_session, client):
         cinsora = Character(
             name="Cinsora",
@@ -304,3 +266,46 @@ class TestCharacterApi:
 
         assert pre_image_ids == post_image_ids
         assert pre_roleplaying_ids == post_roleplaying_ids
+
+
+class TestCharacterApiDelete:
+    def test_delete(self, db_session, client):
+        graurog = Character(
+            name="Graurog",
+            appearance="Female Ogrillon (Orc-Ogre)",
+            background=None,
+            roleplaying_attributes=[
+                Roleplaying(characteristic="Blunt and direct"),
+                Roleplaying(characteristic="Loyal and protective"),
+            ],
+        )
+        cinsora = Character(
+            name="Cinsora",
+            appearance="Dragonborne",
+            background=None,
+            roleplaying_attributes=[
+                Roleplaying(characteristic="Charming but unrefined"),
+                Roleplaying(characteristic="Collects trinkets"),
+            ],
+        )
+        db_session.add_all([graurog, cinsora])
+        db_session.commit()
+
+        response = client.delete("/api/v1/characters/1")
+        assert response.status_code == 204
+
+        db_session.expire_all()
+        gaurog = db_session.exec(
+            select(Character).where(Character.name == "Graurog")
+        ).first()
+        assert gaurog is None
+
+        roleplaying = db_session.exec(
+            select(Roleplaying).where(Roleplaying.character_id == 1)
+        ).all()
+        assert roleplaying == []
+
+    def test_delete_not_found(self, client):
+        response = client.delete("/api/v1/characters/999")
+        assert response.status_code == 404
+        assert response.json() == {"detail": "Character with id 999 not found"}
