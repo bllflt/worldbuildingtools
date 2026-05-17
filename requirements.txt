@@ -3,7 +3,7 @@ alembic==1.18.4
 annotated-doc==0.0.4
 annotated-types==0.7.0
 anyio==4.13.0
--e git+ssh://git@github.com/bllflt/worldbuildingtools.git@873c1d5ef89c6913a0102c4c139d93c4e195cb42#egg=apifast&subdirectory=apifast_app
+-e git+ssh://git@github.com/bllflt/worldbuildingtools.git@983887ce3317cebf141f7d043136976eb0e63805#egg=apifast&subdirectory=apifast_app
 attrs==26.1.0
 Authlib==1.7.2
 bcrypt==5.0.0
@@ -13,6 +13,7 @@ caio==0.9.25
 certifi==2026.4.22
 cffi==2.0.0
 click==8.3.3
+coverage==7.14.0
 cryptography==48.0.0
 cyclopts==4.12.0
 dnspython==2.8.0
@@ -69,6 +70,8 @@ PyJWT==2.12.1
 pyperclip==1.11.0
 pytest==9.0.3
 pytest-asyncio==1.3.0
+pytest-cov==7.1.0
+pytest-env==1.6.0
 python-dotenv==1.2.2
 python-multipart==0.0.28
 PyYAML==6.0.3
