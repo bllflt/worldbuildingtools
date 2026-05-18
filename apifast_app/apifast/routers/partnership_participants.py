@@ -19,8 +19,9 @@ async def get_participants(
     pid: int,
     session: Session = Depends(get_db),
 ) -> list[PartnershipParticipantWrite]:
-    found = session.execute(
-        text("select exists(select 1 from partnerships where id = :pid)"), {"pid": pid}
+    found = session.exec(
+        text("select exists(select 1 from partnerships where id = :pid)"), 
+        params={"pid": pid}
     ).scalar_one()
     if not found:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -38,18 +39,18 @@ async def add_participants(
     participants: list[PartnershipParticipantWrite],
     session: Session = Depends(get_db),
 ):
-    found = session.execute(
+    found = session.exec(
         text("select exists(select 1 from partnerships where id = :pid)"),
-        {"pid": pid},
+        params={"pid": pid},
     ).scalar_one()
     if not found:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     rv = []
     for p in participants:
-        found = session.execute(
+        found = session.exec(
             text("select exists(select 1 from character where id = :cid)"),
-            {"cid": p.character_id},
+            params={"cid": p.character_id},
         ).scalar_one()
         if not found:
             raise HTTPException(
