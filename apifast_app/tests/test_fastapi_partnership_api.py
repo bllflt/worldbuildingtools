@@ -1,5 +1,5 @@
-import pytest
 from apifast.models.model import Character, Partnership, PartnershipParticipant, Ptype
+from sqlmodel import select
 
 
 class TestPartnershipApiGet:
@@ -62,18 +62,28 @@ class TestPartnershipApiGet:
 class TestPartnershipApiPost:
     def test_post_partnership(self, db_session, client):
         """Test creating a new partnership."""
-        payload = {"type": Ptype.LIAISON, "name": None, "start_date": None, "end_date": None}
+        payload = {
+            "type": Ptype.LIAISON,
+            "name": None,
+            "start_date": None,
+            "end_date": None,
+        }
         response = client.post("/api/v1/partnerships", json=payload)
         assert response.status_code == 201
         data = response.json()
         assert data["type"] == Ptype.LIAISON
         assert data["name"] is None
 
-        assert len(db_session.query(Partnership).all()) == 1
+        assert len(db_session.exec(select(Partnership)).all()) == 1
 
     def test_post_partnership_with_name(self, db_session, client):
         """Test creating a partnership with a name."""
-        payload = {"type": Ptype.FACTION, "name": "The Guild", "start_date": None, "end_date": None}
+        payload = {
+            "type": Ptype.FACTION,
+            "name": "The Guild",
+            "start_date": None,
+            "end_date": None,
+        }
         response = client.post("/api/v1/partnerships", json=payload)
         assert response.status_code == 201
         data = response.json()
@@ -87,7 +97,12 @@ class TestPartnershipApiPut:
         db_session.add(p)
         db_session.commit()
 
-        payload = {"type": Ptype.FACTION, "name": "Updated", "start_date": None, "end_date": None}
+        payload = {
+            "type": Ptype.FACTION,
+            "name": "Updated",
+            "start_date": None,
+            "end_date": None,
+        }
         response = client.put(f"/api/v1/partnerships/{p.id}", json=payload)
         assert response.status_code == 204
 
@@ -97,7 +112,12 @@ class TestPartnershipApiPut:
 
     def test_put_partnership_not_found(self, client):
         """Test updating non-existent partnership."""
-        payload = {"type": Ptype.LIAISON, "name": None, "start_date": None, "end_date": None}
+        payload = {
+            "type": Ptype.LIAISON,
+            "name": None,
+            "start_date": None,
+            "end_date": None,
+        }
         response = client.put("/api/v1/partnerships/999", json=payload)
         assert response.status_code == 404
 
@@ -172,9 +192,7 @@ class TestPartnershipParticipantApiGet:
         db_session.add(pp)
         db_session.commit()
 
-        response = client.get(
-            f"/api/v1/partnerships/{p.id}/participants/{c.id}"
-        )
+        response = client.get(f"/api/v1/partnerships/{p.id}/participants/{c.id}")
         assert response.status_code == 200
         data = response.json()
         assert data["role_code"] == "FRIEND"
@@ -198,11 +216,15 @@ class TestPartnershipParticipantApiPost:
             {"character_id": c1.id, "role_code": "FRIEND"},
             {"character_id": c2.id, "role_code": "MENTOR"},
         ]
-        response = client.post(f"/api/v1/partnerships/{p.id}/participants", json=payload)
+        response = client.post(
+            f"/api/v1/partnerships/{p.id}/participants", json=payload
+        )
         assert response.status_code == 204
 
-        participants = db_session.query(PartnershipParticipant).filter(
-            PartnershipParticipant.partnership_id == p.id
+        participants = db_session.exec(
+            select(PartnershipParticipant).where(
+                PartnershipParticipant.partnership_id == p.id
+            )
         ).all()
         assert len(participants) == 2
 
@@ -219,7 +241,9 @@ class TestPartnershipParticipantApiPost:
         db_session.commit()
 
         payload = [{"character_id": 999, "role_code": "FRIEND"}]
-        response = client.post(f"/api/v1/partnerships/{p.id}/participants", json=payload)
+        response = client.post(
+            f"/api/v1/partnerships/{p.id}/participants", json=payload
+        )
         assert response.status_code == 404
 
 
@@ -249,9 +273,7 @@ class TestPartnershipParticipantApiPut:
     def test_update_participant_not_found(self, client):
         """Test error when participant doesn't exist."""
         payload = {"character_id": 1, "role_code": "MENTOR"}
-        response = client.put(
-            "/api/v1/partnerships/1/participants/1", json=payload
-        )
+        response = client.put("/api/v1/partnerships/1/participants/1", json=payload)
         assert response.status_code == 404
 
 
@@ -269,14 +291,14 @@ class TestPartnershipParticipantApiDelete:
         db_session.add(pp)
         db_session.commit()
 
-        response = client.delete(
-            f"/api/v1/partnerships/{p.id}/participants/{c.id}"
-        )
+        response = client.delete(f"/api/v1/partnerships/{p.id}/participants/{c.id}")
         assert response.status_code == 204
 
-        remaining = db_session.query(PartnershipParticipant).filter(
-            PartnershipParticipant.partnership_id == p.id,
-            PartnershipParticipant.character_id == c.id,
+        remaining = db_session.exec(
+            select(PartnershipParticipant).where(
+                PartnershipParticipant.partnership_id == p.id,
+                PartnershipParticipant.character_id == c.id,
+            )
         ).all()
         assert len(remaining) == 0
 
