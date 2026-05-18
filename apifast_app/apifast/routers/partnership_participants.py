@@ -1,13 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import text
-from sqlmodel import select
+from sqlmodel import Session
 
-from apifast.db import Session, get_db
+from apifast.db import get_db
 from apifast.models.model import (
-    PartnershipParticipant,
     PartnershipParticipantRead,
     PartnershipParticipantWrite,
 )
+from apifast.services.partnership_participants import PartnershipParticipantService
 
 router = APIRouter()
 
@@ -19,18 +18,13 @@ async def get_participants(
     pid: int,
     session: Session = Depends(get_db),
 ) -> list[PartnershipParticipantWrite]:
-    found = session.exec(
-        text("select exists(select 1 from partnerships where id = :pid)"), 
-        params={"pid": pid}
-    ).scalar_one()
-    if not found:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    results = session.exec(
-        select(PartnershipParticipant).where(
-            PartnershipParticipant.partnership_id == pid
-        )
-    ).all()
-    return [PartnershipParticipantWrite.model_validate(r) for r in results]
+    try:
+        results = PartnershipParticipantService.get_participants(session, pid)
+        return [PartnershipParticipantWrite.model_validate(r) for r in results]
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        ) from e
 
 
 @router.post("/partnerships/{pid}/participants", status_code=status.HTTP_204_NO_CONTENT)
@@ -38,33 +32,13 @@ async def add_participants(
     pid: int,
     participants: list[PartnershipParticipantWrite],
     session: Session = Depends(get_db),
-):
-    found = session.exec(
-        text("select exists(select 1 from partnerships where id = :pid)"),
-        params={"pid": pid},
-    ).scalar_one()
-    if not found:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-
-    rv = []
-    for p in participants:
-        found = session.exec(
-            text("select exists(select 1 from character where id = :cid)"),
-            params={"cid": p.character_id},
-        ).scalar_one()
-        if not found:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Character with id {p.character_id} not found",
-            )
-        rv.append(
-            PartnershipParticipant.model_validate(
-                p.model_dump() | {"partnership_id": pid},
-            )
-        )
-    session.add_all(rv)
-    session.commit()
-    return rv
+) -> None:
+    try:
+        PartnershipParticipantService.add_participants(session, pid, participants)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        ) from e
 
 
 @router.get(
@@ -73,15 +47,34 @@ async def add_participants(
 async def get_participant(
     pid: int, cid: int, session: Session = Depends(get_db)
 ) -> PartnershipParticipantRead:
-    pp = session.exec(
-        select(PartnershipParticipant).where(
-            PartnershipParticipant.partnership_id == pid,
-            PartnershipParticipant.character_id == cid,
+    try:
+        pp = PartnershipParticipantService.get_participant(session, pid, cid)
+        if not pp:
+            raise ValueError(f"Participant not found in partnership {pid}")
+        return pp
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        ) from e
+
+
+@router.put(
+    "/partnerships/{pid}/participants/{cid}", status_code=status.HTTP_204_NO_CONTENT
+)
+async def update_participant(
+    pid: int,
+    cid: int,
+    participant: PartnershipParticipantWrite,
+    session: Session = Depends(get_db),
+) -> None:
+    try:
+        PartnershipParticipantService.update_participant(
+            session, pid, cid, participant
         )
-    ).one_or_none()
-    if not pp:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    return pp
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        ) from e
 
 
 @router.delete(
@@ -90,34 +83,9 @@ async def get_participant(
 async def delete_participant(
     pid: int, cid: int, session: Session = Depends(get_db)
 ) -> None:
-    pp = session.exec(
-        select(PartnershipParticipant).where(
-            PartnershipParticipant.partnership_id == pid,
-            PartnershipParticipant.character_id == cid,
-        )
-    ).one_or_none()
-    if not pp:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    session.delete(pp)
-    session.commit()
-
-
-@router.put(
-    "/partnershiops/{pid}/participants/{cid}", status_code=status.HTTP_204_NO_CONTENT
-)
-async def update_participant(
-    pid: int,
-    cid: int,
-    participant: PartnershipParticipant,
-    session: Session = Depends(get_db),
-) -> None:
-    pp = session.exec(
-        select(PartnershipParticipant).where(
-            PartnershipParticipant.partnership_id == pid,
-            PartnershipParticipant.character_id == cid,
-        )
-    ).one_or_none()
-    if not pp:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    pp.sqlmodel_update(participant)
-    session.commit()
+    try:
+        PartnershipParticipantService.delete_participant(session, pid, cid)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        ) from e
