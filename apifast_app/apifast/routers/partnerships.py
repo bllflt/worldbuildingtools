@@ -5,7 +5,9 @@ from apifast.db import get_db
 from apifast.models.model import Partnership, PartnershipWrite
 from apifast.services.partnerships import PartnershipQuery, PartnershipService
 
-router = APIRouter()
+router = APIRouter(
+    tags=["partnerships"],
+)
 
 
 @router.get("/partnerships", response_model=list[Partnership])
@@ -25,7 +27,11 @@ async def create_partnership(
     return PartnershipService.create_partnership(session, partnership)
 
 
-@router.get("/partnerships/{partnership_id}", response_model=Partnership, response_model_exclude={"id"})
+@router.get(
+    "/partnerships/{partnership_id}",
+    response_model=Partnership,
+    response_model_exclude={"id"},
+)
 async def get_partnership_by_id(
     partnership_id: int, session: Session = Depends(get_db)
 ) -> Partnership:
@@ -44,9 +50,7 @@ async def update_partnership_by_id(
     try:
         PartnershipService.update_partnership(session, partnership_id, partnership)
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
 @router.delete("/partnerships/{partnership_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -56,6 +60,4 @@ async def delete_partnership_by_id(
     try:
         PartnershipService.delete_partnership(session, partnership_id)
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e

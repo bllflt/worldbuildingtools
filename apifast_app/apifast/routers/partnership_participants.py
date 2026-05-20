@@ -8,7 +8,9 @@ from apifast.models.model import (
 )
 from apifast.services.partnership_participants import PartnershipParticipantService
 
-router = APIRouter()
+router = APIRouter(
+    tags=["partnership participants"],
+)
 
 
 @router.get(
@@ -22,9 +24,7 @@ async def get_participants(
         results = PartnershipParticipantService.get_participants(session, pid)
         return [PartnershipParticipantWrite.model_validate(r) for r in results]
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
 @router.post("/partnerships/{pid}/participants", status_code=status.HTTP_204_NO_CONTENT)
@@ -36,9 +36,7 @@ async def add_participants(
     try:
         PartnershipParticipantService.add_participants(session, pid, participants)
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
 @router.get(
@@ -53,9 +51,7 @@ async def get_participant(
             raise ValueError(f"Participant not found in partnership {pid}")
         return pp
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
 @router.put(
@@ -68,13 +64,9 @@ async def update_participant(
     session: Session = Depends(get_db),
 ) -> None:
     try:
-        PartnershipParticipantService.update_participant(
-            session, pid, cid, participant
-        )
+        PartnershipParticipantService.update_participant(session, pid, cid, participant)
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
 @router.delete(
@@ -86,6 +78,4 @@ async def delete_participant(
     try:
         PartnershipParticipantService.delete_participant(session, pid, cid)
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
