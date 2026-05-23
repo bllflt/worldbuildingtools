@@ -1,0 +1,191 @@
+from typing import Annotated, Literal
+
+from pydantic import BaseModel, computed_field
+from pydantic import Field as PydanticField
+from sqlalchemy import CheckConstraint, UniqueConstraint
+from sqlmodel import Field, Relationship, SQLModel
+
+from charservice.models.enums import Ptype, RoleCode, Sex
+
+
+class CharacterBase(BaseModel):
+    name: str = PydanticField(min_length=1)
+    background: str | None = None
+    appearance: str | None = PydanticField(
+        default=None,
+        description="""
+            A concise, vivid snapshot of the character as they would appear on first impression.
+            Keep the description to 1–2 sentences (up to 3 only if the character has truly extraordinary traits).
+            Focus on the most distinctive and memorable visual features, rather than cataloging every detail.
+            Aim for a pithy, high-impact description suitable for narrative or visual applications.
+            """,
+    )
+    # XXX Why doesn't overriding sex in CharacterReadMCP work?
+    sex: int = PydanticField(
+        default=Sex.NA,
+        description="ISO/IEC 5218 encoding: 0=Unknown, 1=male, 2=female, 9=N/A",
+    )
+
+
+class Character(SQLModel, CharacterBase, table=True):
+    sex: int | None = Field(
+        default=Sex.NA, sa_column_args=[CheckConstraint("sex IN (0, 1, 2, 9)")]
+    )
+    id: int | None = Field(default=None, primary_key=True)
+
+    roleplaying_attributes: list["Roleplaying"] = Relationship(
+        back_populates="character_link",
+        passive_deletes=True,
+        cascade_delete=True,
+    )
+    image_attributes: list["Image"] = Relationship(
+        back_populates="character_link",
+        passive_deletes=True,
+        cascade_delete=False,
+    )
+
+
+class CharacterRead(CharacterBase):
+    id: int
+
+    model_config = {
+        "from_attributes": True,
+    }
+
+    roleplaying_attributes: list["Roleplaying"] = PydanticField(exclude=True)
+    image_attributes: list["Image"] = PydanticField(exclude=True)
+
+    @computed_field(return_type=list[str])
+    @property
+    def roleplaying(self) -> list[str]:
+        return [rp.characteristic for rp in self.roleplaying_attributes]
+
+    @computed_field(return_type=list[str])
+    @property
+    def images(self) -> list[str]:
+        return [i.uri for i in self.image_attributes]
+
+
+# The MCP version of CharacterRead with sex as a string for better compatibility with LLMs
+# https://github.com/PrefectHQ/fastmcp/issues/1159
+# FastMCP and Pydantic serialize numeric enums as integers.
+# While the MCP Inspector can handle these, the Gemini API does not support data types other
+# than strings for enums.
+class CharacterReadMCP(CharacterRead):
+    sex: int = PydanticField(
+        default=Sex.NA,
+        description="ISO/IEC 5218 encoding as string: 0=Unknown, 1=male, 2=female, 9=N/A",
+    )
+
+
+class CharacterWrite(CharacterBase):
+    roleplaying: list[str] = []
+    images: list[str] = []
+
+
+class Roleplaying(SQLModel, table=True):
+    __tablename__ = "roleplaying"
+
+    id: int | None = Field(default=None, primary_key=True)
+    characteristic: str | None = Field(
+        default=None,
+        min_length=1,
+        sa_column_args=[CheckConstraint("length(trim(characteristic)) > 0")],
+    )
+    character_id: int | None = Field(
+        default=None, foreign_key="character.id", ondelete="CASCADE"
+    )
+    character_link: "Character" = Relationship(back_populates="roleplaying_attributes")
+
+
+class Image(SQLModel, table=True):
+    __tablename__ = "images"
+
+    id: int | None = Field(default=None, primary_key=True)
+    character_id: int | None = Field(
+        default=None,
+        foreign_key="character.id",
+        ondelete="SET NULL",
+    )
+    uri: str = Field(
+        min_length=1,
+        unique=True,
+        sa_column_args=[CheckConstraint("length(trim(uri)) > 0")],
+    )
+    character_link: "Character" = Relationship(back_populates="image_attributes")
+
+
+class FactionMember(BaseModel):
+    id: int
+    role: RoleCode
+    name: str | None = None
+    sex: Sex | None = None
+
+
+class SocialNetwork(BaseModel):
+    id: int
+    participants: list[FactionMember] = []
+    start_date: str | None = None
+    end_date: str | None = None
+
+
+class Liaison(SocialNetwork):
+    type: Literal[Ptype.LIAISON] = Field(default=Ptype.LIAISON, description="A liaison")
+
+
+class Faction(SocialNetwork):
+    type: Literal[Ptype.FACTION] = Field(default=Ptype.FACTION, description="A faction")
+    name: str | None = None
+
+
+SocialConnection = Annotated[Liaison | Faction, PydanticField(discriminator="type")]
+
+
+class PartnershipBase(BaseModel):
+    type: Ptype
+    start_date: str | None = Field(default=None)
+    end_date: str | None = Field(default=None)
+    name: str | None = Field(default=None)
+
+
+class Partnership(SQLModel, PartnershipBase, table=True):
+    __tablename__ = "partnerships"
+    id: int | None = Field(default=None, primary_key=True)
+    type: int = Field(sa_column_args=[CheckConstraint("type IN (1, 2)")])
+
+
+class PartnershipWrite(PartnershipBase): ...
+
+
+class Role(SQLModel, table=True):
+    __tablename__ = "roles"
+    code: str = Field(default=None, primary_key=True)
+    description: str | None = None
+
+
+class PartnershipParticipantRead(BaseModel):
+    model_config = {
+        "from_attributes": True,
+    }
+    role_code: RoleCode
+
+
+class PartnershipParticipantWrite(PartnershipParticipantRead):
+    character_id: int
+
+
+class PartnershipParticipant(SQLModel, table=True):
+    __tablename__ = "partnership_participants"
+    __table_args__ = (
+        UniqueConstraint(
+            "partnership_id", "character_id", name="_partnership_character_uc"
+        ),
+    )
+
+    partnership_id: int = Field(
+        foreign_key="partnerships.id", ondelete="CASCADE", primary_key=True
+    )
+    character_id: int = Field(
+        foreign_key="character.id", ondelete="CASCADE", primary_key=True
+    )
+    role_code: str = Field(foreign_key="roles.code", ondelete="CASCADE")

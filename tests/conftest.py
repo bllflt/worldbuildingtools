@@ -1,0 +1,72 @@
+from typing import Generator
+
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlmodel import Session, SQLModel, insert
+
+from charservice.db import enable_foreign_keys, get_db
+from charservice.main import app
+from charservice.modules.auth.service import get_current_user
+
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+)
+enable_foreign_keys(engine)
+
+
+@pytest.fixture(scope="session")
+def db_setup():
+    """Set up the DB and tables once per test session."""
+    SQLModel.metadata.create_all(bind=engine)
+    with Session(engine) as session:
+        populate_role(session)
+        session.commit()
+    yield
+    SQLModel.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture(scope="function")
+def db_session(db_setup) -> Generator[Session, None, None]:
+    """Creates a clean, independent session for each test."""
+    connection = engine.connect()
+    transaction = connection.begin()
+    session = Session(bind=connection)
+
+    yield session
+
+    session.close()
+    transaction.rollback()
+    connection.close()
+
+
+@pytest.fixture(scope="function")
+def client(db_session: Session) -> Generator[TestClient, None, None]:
+    """TestClient that uses the test session."""
+
+    def override_get_db():
+        """Override the dependency to use the test session."""
+        try:
+            yield db_session  # Yield the session from the db_session fixture
+        finally:
+            # Note: No session.close() here as it's handled by db_session cleanup
+            pass
+
+    def override_get_current_user():
+        return "test_user"
+
+    app.dependency_overrides[get_current_user] = override_get_current_user
+    app.dependency_overrides[get_db] = override_get_db
+    yield TestClient(app)
+    # Cleanup: Remove the overrides after the tests
+    app.dependency_overrides.clear()
+
+
+def populate_role(session: Session):
+    from charservice.models.model import Role, RoleCode
+
+    data = [{"code": member.value} for member in RoleCode]
+    session.exec(insert(Role), params=data)
