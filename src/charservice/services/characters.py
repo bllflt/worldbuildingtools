@@ -40,7 +40,7 @@ class CharacterService:
         return session.exec(stmt).all()
 
     @staticmethod
-    def get_character_by_id(session: Session, character_id: int) -> Character:
+    def get_character_by_id(session: Session, character_id: int) -> Character | None:
         """Retrieve a character by its ID."""
         return session.get(
             Character,
