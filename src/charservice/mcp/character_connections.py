@@ -1,10 +1,12 @@
 from typing import List
 
-from charservice.db import get_db_context
-from charservice.models.model import SocialConnection
-from charservice.services.character_connections import CharacterConnectionsService
 from fastmcp import FastMCP
 from pydantic import Field
+
+from charservice.db import get_db_context
+from charservice.models.model import SocialConnection
+from charservice.modules.social.schemas import Association, Member
+from charservice.services.character_connections import CharacterConnectionsService
 
 mcp = FastMCP("Character Connections Tools")
 
@@ -32,3 +34,21 @@ def get_character_connections(
         return CharacterConnectionsService.get_connections_by_character_id(
             session, character_id, depth
         )
+
+
+@mcp.tool()
+def create_character_connection(
+    member1: Member = Field(description="First character and role"),
+    member2: Member | Association = Field(
+        description="Second character and role, or association"
+    ),
+) -> None:
+    """
+    Create a social connection between two characters or a character and an association.
+
+    Args:
+        member1: The first member (character and role)
+        member2: The second member (character and role, or association)
+    """
+    with get_db_context() as session:
+        CharacterConnectionsService.create_connection(session, member1, member2)

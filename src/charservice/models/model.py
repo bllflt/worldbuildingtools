@@ -152,6 +152,7 @@ class Partnership(SQLModel, PartnershipBase, table=True):
     __tablename__ = "partnerships"
     id: int | None = Field(default=None, primary_key=True)
     type: int = Field(sa_column_args=[CheckConstraint("type IN (1, 2)")])
+    participants: list["PartnershipParticipant"] = Relationship()
 
 
 class PartnershipWrite(PartnershipBase): ...
