@@ -1,12 +1,14 @@
-from typing import List
+from typing import List, Sequence
 
 from fastmcp import FastMCP
 from pydantic import Field
 
 from charservice.db import get_db_context
-from charservice.models.model import SocialConnection
-from charservice.modules.social.schemas import Association, Member
+from charservice.models.enums import RoleCode
+from charservice.models.model import Character, Partnership, SocialConnection
 from charservice.services.character_connections import CharacterConnectionsService
+from charservice.services.partnership_participants import PartnershipParticipantService
+from charservice.services.partnerships import PartnershipQuery, PartnershipService
 
 mcp = FastMCP("Character Connections Tools")
 
@@ -38,17 +40,45 @@ def get_character_connections(
 
 @mcp.tool()
 def create_character_connection(
-    member1: Member = Field(description="First character and role"),
-    member2: Member | Association = Field(
-        description="Second character and role, or association"
-    ),
+    src_character_id: int = Field(description="Source character ID"),
+    role: RoleCode = Field(description="Role of the first character in the connection"),
+    target_character_id: int = Field(description="Target character ID"),
 ) -> None:
     """
-    Create a social connection between two characters or a character and an association.
-
-    Args:
-        member1: The first member (character and role)
-        member2: The second member (character and role, or association)
+    Create a bidirection connection between the source character id and target character id with the specified role. The inverse role will be automatically assigned to the target character.
     """
     with get_db_context() as session:
-        CharacterConnectionsService.create_connection(session, member1, member2)
+        CharacterConnectionsService.create_pairwise_connection(
+            session, src_character_id, role, target_character_id
+        )
+
+
+@mcp.tool()
+def get_factions_list() -> List[Partnership]:
+    """Get a list of all factions."""
+    with get_db_context() as session:
+        return PartnershipService.get_partnerships(
+            session, PartnershipQuery(faction_only=True)
+        )
+
+
+@mcp.tool()
+def get_faction_members(
+    faction_id: int = Field(description="ID of the faction to get members for"),
+) -> Sequence[Character]:
+    """Get a list of character IDs that are members of a faction."""
+    with get_db_context() as session:
+        return PartnershipParticipantService.get_characters_of_faction(
+            session, faction_id
+        )
+
+
+@mcp.tool()
+def create_faction_connection(
+    character_id: int = Field(description="Character ID to add to faction"),
+    faction_id: int = Field(description="Faction ID to join"),
+) -> None:
+    with get_db_context() as session:
+        CharacterConnectionsService.create_faction_connection(
+            session, character_id, faction_id
+        )

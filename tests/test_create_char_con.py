@@ -7,14 +7,13 @@ from sqlmodel import Session, col, select
 from charservice.mcp.character_connections import CharacterConnectionsService
 from charservice.models.enums import Ptype, RoleCode
 from charservice.models.model import Character, Partnership, PartnershipParticipant
-from charservice.modules.social.schemas import Association, Member
 
 
 class TestCreateCharCon:
     @pytest.mark.parametrize(
         "rc1, r2, ptype",
         [
-            (RoleCode.MATE, RoleCode.CONCUBINE, Ptype.LIAISON),
+            (RoleCode.CONCUBINE, RoleCode.MATE, Ptype.LIAISON),
             (RoleCode.LIEGE, RoleCode.RETAINER, Ptype.FACTION),
         ],
     )
@@ -27,10 +26,8 @@ class TestCreateCharCon:
         db_session.add_all([g, c])
         db_session.commit()
 
-        CharacterConnectionsService.create_connection(
-            db_session,
-            Member(character_id=str(g.id), role_code=rc1),
-            Member(character_id=str(c.id), role_code=r2),
+        CharacterConnectionsService.create_pairwise_connection(
+            db_session, g.id, rc1, c.id
         )
 
         got = defaultdict(dict)
@@ -61,16 +58,19 @@ class TestCreateCharCon:
 
     def test_create_char_con_faction(self, db_session: Session) -> None:
         g = Character(name="G")
-        db_session.add(g)
+        f = Partnership(type=Ptype.FACTION, name="Guild")
+        db_session.add_all([g, f])
         db_session.commit()
 
-        CharacterConnectionsService.create_connection(
+        CharacterConnectionsService.create_faction_connection(
             db_session,
-            Member(character_id=str(g.id), role_code=RoleCode.MEMBER),
-            Association(name="Guild"),
+            g.id,
+            f.id,
         )
 
-        partnership = db_session.exec(select(Partnership).where(Partnership.name == "Guild")).one_or_none()
+        partnership = db_session.exec(
+            select(Partnership).where(Partnership.name == "Guild")
+        ).one_or_none()
         assert partnership is not None
         assert partnership.type == int(Ptype.FACTION)
         assert partnership.participants == [
@@ -80,38 +80,3 @@ class TestCreateCharCon:
                 role_code=RoleCode.MEMBER,
             )
         ]
-    def test_create_char_con_faction_exists(self, db_session: Session) -> None:
-        g1 = Character(name="G1")
-        g2 = Character(name="G2")
-        db_session.add_all([g1, g2])
-        db_session.commit()
-
-        # Create the first connection to the faction
-        CharacterConnectionsService.create_connection(
-            db_session,
-            Member(character_id=str(g1.id), role_code=RoleCode.MEMBER),
-            Association(name="Guild"),
-        )
-
-        # Create the second connection to the same faction
-        CharacterConnectionsService.create_connection(
-            db_session,
-            Member(character_id=str(g2.id), role_code=RoleCode.MEMBER),
-            Association(name="Guild"),
-        )
-
-        partnership = db_session.exec(select(Partnership).where(Partnership.name == "Guild")).one_or_none()
-        assert partnership is not None
-        assert partnership.type == int(Ptype.FACTION)
-        assert partnership.participants == unordered([
-            PartnershipParticipant(
-                partnership_id=partnership.id,
-                character_id=g1.id,
-                role_code=RoleCode.MEMBER,
-            ),
-            PartnershipParticipant(
-                partnership_id=partnership.id,
-                character_id=g2.id,
-                role_code=RoleCode.MEMBER,
-            )
-        ])

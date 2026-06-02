@@ -1,7 +1,10 @@
+from typing import Sequence
+
 from sqlalchemy import text
 from sqlmodel import Session, select
 
 from charservice.models.model import (
+    Character,
     PartnershipParticipant,
     PartnershipParticipantWrite,
 )
@@ -9,7 +12,7 @@ from charservice.models.model import (
 
 class PartnershipParticipantService:
     @staticmethod
-    def get_participants(session: Session, partnership_id: int) -> list[PartnershipParticipant]:
+    def get_participants(session: Session, partnership_id: int) -> Sequence[PartnershipParticipant]:
         """Retrieve all participants for a partnership."""
         PartnershipParticipantService._validate_partnership_exists(
             session, partnership_id
@@ -99,6 +102,16 @@ class PartnershipParticipantService:
             )
         session.delete(pp)
         session.commit()
+
+    @staticmethod
+    def get_characters_of_faction(session: Session, faction_id: int) -> Sequence[Character]:
+        """Get all character IDs that are members of a faction."""
+        return session.exec(
+            select(Character).join(PartnershipParticipant).where(
+                PartnershipParticipant.partnership_id == faction_id,
+            )
+        ).all()
+
 
     @staticmethod
     def _validate_partnership_exists(session: Session, partnership_id: int) -> None:

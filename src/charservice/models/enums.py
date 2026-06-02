@@ -32,6 +32,29 @@ class RoleCode(StrEnum):
     SUBBORDIATE = "SUBBORDINATE"
     FRIEND = "FRIEND"
 
+    @classmethod
+    def opposite_role(cls, role: "RoleCode") -> "RoleCode":
+        return {
+            cls.PROTEGE: cls.MENTOR,
+            cls.MENTOR: cls.PROTEGE,
+            cls.LIEGE: cls.RETAINER,
+            cls.RETAINER: cls.LIEGE,
+            cls.PATRON: cls.CLIENT,
+            cls.EMPLOYER: cls.EMPLOYEE,
+            cls.EMPLOYEE: cls.EMPLOYER,
+            cls.MASTER: cls.SLAVE,
+            cls.SLAVE: cls.MASTER,
+            cls.COMMANDER: cls.SUBBORDIATE,
+            cls.SUBBORDIATE: cls.COMMANDER,
+            cls.GUARDIAN: cls.WARD,
+            cls.WARD: cls.GUARDIAN,
+            cls.FRIEND: cls.FRIEND,
+            cls.MATE: cls.MATE,
+            cls.BETROTHED: cls.BETROTHED,
+            cls.CONCUBINE: cls.MATE,
+            cls.PARAMOUR: cls.PARAMOUR,
+        }[role]
+
 
 class Ptype(IntEnum):
     LIAISON = 1

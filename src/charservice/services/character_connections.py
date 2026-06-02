@@ -4,14 +4,13 @@ from typing import List
 from sqlmodel import select, text
 
 from charservice.db import Session
-from charservice.models.enums import Ptype
+from charservice.models.enums import Ptype, RoleCode
 from charservice.models.model import (
     Partnership,
     PartnershipParticipant,
     SocialConnection,
 )
-from charservice.modules.social.schemas import Member, Association
-from charservice.models.enums import RoleCode
+
 
 class CharacterConnectionsService:
     @staticmethod
@@ -92,66 +91,46 @@ FROM all_partnerships p;
         connections = [json.loads(row["partnerships_json"]) for row in rows]
         return connections
 
-
     @staticmethod
-    def __handle_pairwise(session: Session, member1: Member, member2: Member) -> None:
+    def create_pairwise_connection(
+        session: Session, src_character_id: int, role: RoleCode, target_id: int
+    ) -> None:
 
-        match member1.role_code:
-          case (RoleCode.MATE | RoleCode.CONCUBINE | RoleCode.BETROTHED| RoleCode.PARAMOUR):
-            partnership_type = Ptype.LIAISON
-          case _:
-            partnership_type = Ptype.FACTION
+        match role:
+            case (
+                RoleCode.MATE
+                | RoleCode.CONCUBINE
+                | RoleCode.BETROTHED
+                | RoleCode.PARAMOUR
+            ):
+                partnership_type = Ptype.LIAISON
+            case _:
+                partnership_type = Ptype.FACTION
         partnership = Partnership(type=partnership_type)
         session.add(partnership)
-        session.flush()  # Get the partnership ID
+        session.flush()  # to get partnership.id
 
         participant1 = PartnershipParticipant(
             partnership_id=partnership.id,
-            character_id=int(member1.character_id),
-            role_code=member1.role_code,
+            character_id=src_character_id,
+            role_code=role,
         )
         participant2 = PartnershipParticipant(
             partnership_id=partnership.id,
-            character_id=int(member2.character_id),
-            role_code=member2.role_code,
+            character_id=target_id,
+            role_code=RoleCode.opposite_role(role),
         )
         session.add_all([participant1, participant2])
         session.commit()
 
     @staticmethod
-    def __handle_association(session: Session, member: Member, association: Association) -> None:
-        
-        partnership = session.exec(select(Partnership).where(Partnership.name == association.name)).one_or_none()
-        if not partnership:
-          partnership = Partnership(type=Ptype.FACTION, name=association.name)
-          session.add(partnership)
-          session.flush()  
-
+    def create_faction_connection(
+        session: Session, character_id: int, faction_id: int
+    ) -> None:
         participant = PartnershipParticipant(
-            partnership_id=partnership.id,
-            character_id=int(member.character_id),
-            role_code=member.role_code,
+            partnership_id=faction_id,
+            character_id=character_id,
+            role_code=RoleCode.MEMBER,
         )
         session.add(participant)
         session.commit()
-
-    @staticmethod
-    def create_connection(session: Session, member1: Member, member2: Member | Association) -> None:
-        """
-        Create a new social connection (partnership) between two characters.
-
-        Args:
-            session: Database session
-            member1: First member of the partnership
-            member2: Second member of the partnership
-
-        Returns:
-            None
-        """
-        if isinstance(member2, Association):
-            CharacterConnectionsService.__handle_association(session, member1, member2)
-        else:
-            CharacterConnectionsService.__handle_pairwise(session, member1, member2)
-            
-
-
