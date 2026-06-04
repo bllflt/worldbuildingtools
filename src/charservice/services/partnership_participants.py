@@ -1,10 +1,12 @@
 from typing import Sequence
 
 from sqlalchemy import text
-from sqlmodel import Session, select
+from sqlmodel import Session, func, select
 
+from charservice.models.enums import Ptype
 from charservice.models.model import (
     Character,
+    Partnership,
     PartnershipParticipant,
     PartnershipParticipantWrite,
 )
@@ -12,7 +14,9 @@ from charservice.models.model import (
 
 class PartnershipParticipantService:
     @staticmethod
-    def get_participants(session: Session, partnership_id: int) -> Sequence[PartnershipParticipant]:
+    def get_participants(
+        session: Session, partnership_id: int
+    ) -> Sequence[PartnershipParticipant]:
         """Retrieve all participants for a partnership."""
         PartnershipParticipantService._validate_partnership_exists(
             session, partnership_id
@@ -77,9 +81,7 @@ class PartnershipParticipantService:
             )
         ).one_or_none()
         if not pp:
-            raise ValueError(
-                f"Participant not found in partnership {partnership_id}"
-            )
+            raise ValueError(f"Participant not found in partnership {partnership_id}")
         pp.sqlmodel_update(participant)
         session.commit()
         session.refresh(pp)
@@ -97,21 +99,44 @@ class PartnershipParticipantService:
             )
         ).one_or_none()
         if not pp:
-            raise ValueError(
-                f"Participant not found in partnership {partnership_id}"
-            )
+            raise ValueError(f"Participant not found in partnership {partnership_id}")
         session.delete(pp)
         session.commit()
 
     @staticmethod
-    def get_characters_of_faction(session: Session, faction_id: int) -> Sequence[Character]:
+    def get_characters_of_faction(
+        session: Session, faction_id: int
+    ) -> Sequence[Character]:
         """Get all character IDs that are members of a faction."""
         return session.exec(
-            select(Character).join(PartnershipParticipant).where(
+            select(Character)
+            .join(PartnershipParticipant)
+            .where(
                 PartnershipParticipant.partnership_id == faction_id,
             )
         ).all()
 
+    @staticmethod
+    def find_laison_containing_characters(
+        session: Session, character_ids: list[int]
+    ) -> int | None:
+        """Get  liaison partnership that contain  the specified character IDs."""
+        return session.exec(
+            select(PartnershipParticipant.partnership_id)
+            # 1. Join the main Partnership table
+            .join(Partnership, PartnershipParticipant.partnership_id == Partnership.id)
+            # 2. Filter by both the character IDs and the specific type
+            .where(
+                PartnershipParticipant.character_id.in_(character_ids),
+                Partnership.type == Ptype.LIAISON,
+            )
+            .group_by(PartnershipParticipant.partnership_id)
+            # 3. Ensure both characters are present
+            .having(
+                func.count(PartnershipParticipant.character_id.distinct())
+                == len(character_ids)
+            )
+        ).one_or_none()
 
     @staticmethod
     def _validate_partnership_exists(session: Session, partnership_id: int) -> None:
