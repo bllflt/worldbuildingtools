@@ -7,7 +7,7 @@ from pathlib import Path
 
 import httpx
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
-from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse
 from sqlmodel import Session
 
 from charservice.auth.jwt import create_access_token
@@ -19,11 +19,14 @@ from charservice.models.model import Character, Image
 router = APIRouter()
 
 
-@router.get("/images/{image_uri}", response_class=FileResponse, include_in_schema=False)
+@router.get("/images/{image_uri}", include_in_schema=False)
 async def get_images(
     image_uri: str,
 ):
-    return Path(config.image_dir).joinpath(image_uri)
+    return JSONResponse(
+        content="",
+        headers={"X-Accel-Redirect": "/protected_files/" + image_uri},
+    )
 
 
 @router.post("/characters/upload-image")
