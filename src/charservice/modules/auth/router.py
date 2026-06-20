@@ -1,11 +1,12 @@
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+from sqlmodel import Session, select
+
 from charservice.auth.jwt import create_access_token
 from charservice.config import config
 from charservice.db import get_db
 from charservice.modules.auth.models import User
 from charservice.modules.auth.schemas import LoginRequest
 from charservice.modules.auth.service import get_current_user
-from fastapi import APIRouter, Depends, HTTPException, Response, status
-from sqlmodel import Session, select
 
 router = APIRouter()
 
@@ -15,17 +16,13 @@ async def login(
     request: LoginRequest, response: Response, session: Session = Depends(get_db)
 ) -> dict[str, str]:
 
-    user: User | None  = session.exec(select(User).where(User.username == request.username)).first()
+    user: User | None = session.exec(
+        select(User).where(User.username == request.username)
+    ).first()
     if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Nope"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Nope")
     if not user.verify_password:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Nope"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Nope")
 
     response.set_cookie(
         key="access_token",

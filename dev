@@ -32,7 +32,7 @@ screen -S "$SESSION" -X select 0  # Select back to window 0 (Redis)
 # 4. Create a new window for LLM Proxy
 screen -S "$SESSION" -X screen  # Creates window 3 and selects it
 screen -S "$SESSION" -X title llm_proxy 
-screen -S "$SESSION" -X stuff "cd ~/llm_proxy && source venv/bin/activate && cd lm_proxy/app && fastapi dev main.py --port 4000\n"
+screen -S "$SESSION" -X stuff "cd ~/llm_proxy && source venv/bin/activate && cd app && fastapi dev main.py --port 4000\n"
 screen -S "$SESSION" -X select 0  # Select back to window 0 (Redis)
 
 # 5. Create a new window for nginx

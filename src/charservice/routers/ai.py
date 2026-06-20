@@ -3,10 +3,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import httpx
-from charservice.auth.jwt import create_access_token
 from fastapi import APIRouter, Depends, status
 from sqlmodel import Session, select
 
+from charservice.auth.jwt import create_access_token
 from charservice.config import config
 from charservice.db import get_db
 from charservice.mdb import get_redis
@@ -59,7 +59,7 @@ async def enque_caption_work(
             print(response.json())
     except httpx.RequestError as exc:
         print(f"An error occurred while requesting {exc.request.url!r}.")
-        print(client.requst)
+        print(client.request)
         raise
 
 
