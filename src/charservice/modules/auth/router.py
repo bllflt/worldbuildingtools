@@ -1,3 +1,6 @@
+import logging
+
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlmodel import Session, select
 
@@ -26,7 +29,7 @@ async def login(
 
     response.set_cookie(
         key="access_token",
-        value=create_access_token({"sub": request.username}),
+        value=create_access_token({"sub": f"user_id:{user.id}"}),
         httponly=True,
         samesite="none",
         secure=False,
@@ -53,7 +56,31 @@ async def check_auth(current_user: str = Depends(get_current_user)) -> Response:
     """
     Endpoint for Nginx auth_request.
     Returns 200 if authenticated, otherwise get_current_user raises 401.
-    Sets the X-User-ID header for Nginx to forward to backends.
+    Sets
+        X-User-ID
+        X-Permitted-Stories
     """
-    # In this implementation, current_user is the username from the JWT 'sub'
-    return Response(status_code=status.HTTP_200_OK, headers={"X-User-ID": current_user})
+
+    current_user_id = int(current_user[8:])  # Strip "user_id:" prefix
+
+    url = "http://localhost:2000/api/v1/get_permitted_stories"
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                url,
+                params={"user_id": current_user_id},
+                timeout=3.0,
+            )
+            print(response)
+    except httpx.RequestError as exc:
+        print(f"An error occurred while requesting {exc.request.url!r}.")
+        print(client.request)
+        raise
+
+    return Response(
+        status_code=status.HTTP_200_OK,
+        headers={
+            "X-User-ID": str(current_user_id),
+            "X-Permitted-Stories": ",".join(map(str, response.json())),
+        },
+    )

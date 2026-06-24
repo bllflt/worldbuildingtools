@@ -68,7 +68,7 @@ class CharacterService:
     @staticmethod
     def update_character(
         session: Session, character_id: int, character: CharacterWrite
-    ) -> Character:
+    ) -> None:
         """Update an existing character."""
         db_character = CharacterService.get_character_by_id(session, character_id)
         if not db_character:

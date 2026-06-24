@@ -1,9 +1,15 @@
 from typing import Annotated
 
 import jwt
-from charservice.config import config
 from fastapi import Depends, HTTPException, status
-from fastapi.security import APIKeyCookie, HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import (
+    APIKeyCookie,
+    APIKeyHeader,
+    HTTPAuthorizationCredentials,
+    HTTPBearer,
+)
+
+from charservice.config import config
 
 cookie_auth_scheme = APIKeyCookie(name="access_token", auto_error=False)
 token_auth_scheme = HTTPBearer(auto_error=False)
@@ -43,3 +49,29 @@ def get_current_user(
         )
 
     return username
+
+
+header_scheme = APIKeyHeader(name="x-permitted-stories", auto_error=False)
+
+
+def get_permitted_stories(header: str = Depends(header_scheme)) -> list[str]:
+    """
+    Extracts the list of permitted stories from the authentication header.
+    Returns a list of story UUIDs.
+    """
+
+    if not header:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing authentication header",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    try:
+        stories = header[19:].split(",")
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid permitted stories format in authentication header",
+        )
+    return stories

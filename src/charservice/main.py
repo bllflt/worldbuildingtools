@@ -7,6 +7,7 @@ from charservice.mcp.character_connections import mcp as mcp_character_connectio
 from charservice.mcp.characters import mcp as mcp_characters
 from charservice.modules.auth import router as auth
 from charservice.modules.auth.service import get_current_user
+from charservice.modules.stories import router as stories
 from charservice.routers import (
     ai,
     character_connections,
@@ -37,6 +38,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(stories.router, prefix="/api/v1")
 app.include_router(
     characters.router, prefix="/api/v1", dependencies=[Depends(get_current_user)]
 )

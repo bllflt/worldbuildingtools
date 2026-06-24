@@ -20,8 +20,8 @@ class TestCreateCharCon:
     def test_create_char_con(
         self, db_session: Session, rc1: RoleCode, r2: RoleCode, ptype: Ptype
     ) -> None:
-        g = Character(name="G")
-        c = Character(name="C")
+        g = Character(story_uuid="test-story", name="G")
+        c = Character(story_uuid="test-story", name="C")
 
         db_session.add_all([g, c])
         db_session.commit()
@@ -57,7 +57,7 @@ class TestCreateCharCon:
         )
 
     def test_create_char_con_faction(self, db_session: Session) -> None:
-        g = Character(name="G")
+        g = Character(story_uuid="test-story", name="G")
         f = Partnership(type=Ptype.FACTION, name="Guild")
         db_session.add_all([g, f])
         db_session.commit()

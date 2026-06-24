@@ -39,7 +39,10 @@ async def enque_caption_work(
         .one()
         .character_id
     )
-    current_description = session.get(Character, character_id).appearance
+    c = session.get(Character, character_id)
+    if c is None:
+        return
+    current_description = c.appearance
     image_file = Path(config.image_dir).joinpath(data.image)
 
     token = create_access_token({"sub": "apifast"})

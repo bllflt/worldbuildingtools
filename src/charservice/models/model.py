@@ -32,6 +32,7 @@ class Character(SQLModel, CharacterBase, table=True):
         default=Sex.NA, sa_column_args=[CheckConstraint("sex IN (0, 1, 2, 9)")]
     )
     id: int | None = Field(default=None, primary_key=True)
+    story_uuid: str = Field(default=None, index=True)
 
     roleplaying_attributes: list["Roleplaying"] = Relationship(
         back_populates="character_link",
@@ -47,6 +48,7 @@ class Character(SQLModel, CharacterBase, table=True):
 
 class CharacterRead(CharacterBase):
     id: int
+    story_uuid: str
 
     model_config = {
         "from_attributes": True,
@@ -57,7 +59,7 @@ class CharacterRead(CharacterBase):
 
     @computed_field(return_type=list[str])
     @property
-    def roleplaying(self) -> list[str]:
+    def roleplaying(self) -> list[str | None]:
         return [rp.characteristic for rp in self.roleplaying_attributes]
 
     @computed_field(return_type=list[str])
@@ -79,12 +81,13 @@ class CharacterReadMCP(CharacterRead):
 
 
 class CharacterWrite(CharacterBase):
+    story_uuid: str
     roleplaying: list[str] = []
     images: list[str] = []
 
 
 class Roleplaying(SQLModel, table=True):
-    __tablename__ = "roleplaying"
+    __tablename__ = "roleplaying" # type: ignore[override]
 
     id: int | None = Field(default=None, primary_key=True)
     characteristic: str | None = Field(
@@ -99,7 +102,7 @@ class Roleplaying(SQLModel, table=True):
 
 
 class Image(SQLModel, table=True):
-    __tablename__ = "images"
+    __tablename__ = "images" # type: ignore[override]
 
     id: int | None = Field(default=None, primary_key=True)
     character_id: int | None = Field(
@@ -149,7 +152,7 @@ class PartnershipBase(BaseModel):
 
 
 class Partnership(SQLModel, PartnershipBase, table=True):
-    __tablename__ = "partnerships"
+    __tablename__ = "partnerships" # type: ignore[override]
     id: int | None = Field(default=None, primary_key=True)
     type: int = Field(sa_column_args=[CheckConstraint("type IN (1, 2)")])
     participants: list["PartnershipParticipant"] = Relationship(cascade_delete=True)
@@ -159,7 +162,7 @@ class PartnershipWrite(PartnershipBase): ...
 
 
 class Role(SQLModel, table=True):
-    __tablename__ = "roles"
+    __tablename__ = "roles" # type: ignore[override]
     code: str = Field(default=None, primary_key=True)
     description: str | None = None
 
@@ -176,7 +179,7 @@ class PartnershipParticipantWrite(PartnershipParticipantRead):
 
 
 class PartnershipParticipant(SQLModel, table=True):
-    __tablename__ = "partnership_participants"
+    __tablename__ = "partnership_participants" # type: ignore[override]
     __table_args__ = (
         UniqueConstraint(
             "partnership_id", "character_id", name="_partnership_character_uc"

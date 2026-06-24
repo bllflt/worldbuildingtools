@@ -7,9 +7,9 @@ from charservice.services.partnership_participants import PartnershipParticipant
 
 class TestLiaisonThings:
     def test_find_laison_containing_characters(self, db_session: Session) -> None:
-        g1 = Character(name="G1")
-        g2 = Character(name="G2")
-        g3 = Character(name="G3")
+        g1 = Character(story_uuid="test-story", name="G1")
+        g2 = Character(story_uuid="test-story", name="G2")
+        g3 = Character(story_uuid="test-story", name="G3")
         p1 = Partnership(type=Ptype.LIAISON)
         p2 = Partnership(type=Ptype.FACTION, name="L2")
         db_session.add_all([g1, g2, g3, p1, p2])

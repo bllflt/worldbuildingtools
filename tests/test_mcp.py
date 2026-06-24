@@ -10,9 +10,9 @@ from charservice.models.model import Character, Roleplaying
 
 
 @pytest.fixture
-async def main_mcp_client(db_session) -> Client[FastMCPTransport]:
+async def main_mcp_client(db_session) -> Client[FastMCPTransport]: #type: ignore
     async with Client(mcp) as client:
-        yield client
+        yield client # type: ignore
 
 
 @pytest.mark.asyncio
@@ -23,6 +23,7 @@ class TestMCPCharacterTools:
         ) as mock_get_character_by_id:
             mock_get_character_by_id.return_value = Character(
                 id=1,
+                story_uuid="test-story",
                 name="Test Character",
                 appearance="Test Appearance",
                 background="Test Background",
@@ -39,6 +40,7 @@ class TestMCPCharacterTools:
             assert result.data is not None
             assert result.structured_content == {
                 "id": 1,
+                "story_uuid": "test-story",
                 "name": "Test Character",
                 "appearance": "Test Appearance",
                 "background": "Test Background",

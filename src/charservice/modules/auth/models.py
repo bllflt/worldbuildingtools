@@ -3,10 +3,11 @@ from sqlmodel import Field, SQLModel
 
 
 class User(SQLModel, table=True):
-    __tablename__ = "users"
+    __tablename__ = "users" # type: ignore[override]
+
     id: int | None = Field(default=None, primary_key=True)
     username: str = Field(index=True, unique=True, min_length=1)
-    hashed_password: str
+    hashed_password: bytes
 
     def verify_password(self, password: str) -> bool:
         return bcrypt.checkpw(password.encode("utf-8"), self.hashed_password)

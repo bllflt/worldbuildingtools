@@ -160,8 +160,8 @@ class TestPartnershipParticipantApiGet:
 
     def test_get_participants(self, db_session, client):
         """Test retrieving all participants in a partnership."""
-        c1 = Character(name="Character 1")
-        c2 = Character(name="Character 2")
+        c1 = Character(story_uuid="test-story", name="Character 1")
+        c2 = Character(story_uuid="test-story", name="Character 2")
         p = Partnership(type=Ptype.LIAISON, name=None)
         db_session.add_all([c1, c2, p])
         db_session.commit()
@@ -187,7 +187,7 @@ class TestPartnershipParticipantApiGet:
 
     def test_get_participant_by_ids(self, db_session, client):
         """Test retrieving a specific participant."""
-        c = Character(name="Character")
+        c = Character(story_uuid="test-story", name="Character")
         p = Partnership(type=Ptype.LIAISON, name=None)
         db_session.add_all([c, p])
         db_session.commit()
@@ -212,8 +212,8 @@ class TestPartnershipParticipantApiGet:
 class TestPartnershipParticipantApiPost:
     def test_add_participants(self, db_session, client):
         """Test adding participants to a partnership."""
-        c1 = Character(name="Character 1")
-        c2 = Character(name="Character 2")
+        c1 = Character(story_uuid="test-story", name="Character 1")
+        c2 = Character(story_uuid="test-story", name="Character 2")
         p = Partnership(type=Ptype.LIAISON, name=None)
         db_session.add_all([c1, c2, p])
         db_session.commit()
@@ -256,7 +256,7 @@ class TestPartnershipParticipantApiPost:
 class TestPartnershipParticipantApiPut:
     def test_update_participant(self, db_session, client):
         """Test updating participant role."""
-        c = Character(name="Character")
+        c = Character(story_uuid="test-story", name="Character")
         p = Partnership(type=Ptype.LIAISON, name=None)
         db_session.add_all([c, p])
         db_session.commit()
@@ -286,7 +286,7 @@ class TestPartnershipParticipantApiPut:
 class TestPartnershipParticipantApiDelete:
     def test_delete_participant(self, db_session, client):
         """Test removing a participant."""
-        c = Character(name="Character")
+        c = Character(story_uuid="test-story", name="Character")
         p = Partnership(type=Ptype.LIAISON, name=None)
         db_session.add_all([c, p])
         db_session.commit()
