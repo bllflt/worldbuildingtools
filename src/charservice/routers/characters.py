@@ -3,7 +3,8 @@ from fastapi.responses import JSONResponse
 from sqlmodel import Session
 
 from charservice.db import get_db
-from charservice.models.model import Character, CharacterRead, CharacterWrite
+from charservice.models.model import Character, CharacterCreate, CharacterRead, CharacterWrite
+from charservice.modules.auth.service import get_permitted_stories
 from charservice.services.characters import CharacterQuery, CharacterService
 
 router = APIRouter(
@@ -12,7 +13,7 @@ router = APIRouter(
 
 
 @router.get(
-    "/characters",
+    "/stories/{story_uuid}/characters",
     response_model=None,
     responses={
         200: {
@@ -26,12 +27,20 @@ router = APIRouter(
     },
 )
 async def get_characters_list(
+    story_uuid: str,
     sort: str | None = Query(None, description="Field to sort by"),
     name: str | None = Query(None, description="filter by name"),
     fields: str | None = Query(None, description="Fields to return"),
     session: Session = Depends(get_db),
+    permitted_stories: set[str] = Depends(get_permitted_stories),
 ) -> list[CharacterRead] | Response:
     include_fields: set[str] | None = None
+
+    if story_uuid not in permitted_stories:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied to story {story_uuid}",
+        )
 
     if fields:
         include_fields = fields.split(",")
@@ -51,6 +60,7 @@ async def get_characters_list(
     results = CharacterService.get_characters(
         session,
         CharacterQuery(
+            story_uuid=story_uuid,
             sort=sort,
             name=name,
             fields=include_fields,
@@ -66,24 +76,31 @@ async def get_characters_list(
 
 
 @router.post(
-    "/characters", status_code=status.HTTP_201_CREATED, response_model=CharacterRead
+    "/stories/{story_uuid}/characters",
+    status_code=status.HTTP_201_CREATED,
+    response_model=CharacterRead,
 )
 async def create_character(
-    character: CharacterWrite, session: Session = Depends(get_db)
+    story_uuid: str, character: CharacterCreate, session: Session = Depends(get_db)
 ) -> Character:
-    return CharacterService.create_character(session, character)
+    return CharacterService.create_character(session, story_uuid, character)
 
 
 @router.get("/characters/{character_id}", response_model=CharacterRead)
 async def get_character_by_id(
-    character_id: int, session: Session = Depends(get_db)
+    character_id: int,
+    session: Session = Depends(get_db),
+    permitted_stories: set[str] = Depends(get_permitted_stories),
 ) -> Character:
-    character = CharacterService.get_character_by_id(session, character_id)
+    character = CharacterService.get_character_by_id(
+        session, character_id, permitted_stories
+    )
     if not character:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Character with id {character_id} not found",
         )
+
     return character
 
 
@@ -92,19 +109,24 @@ async def update_character_by_id(
     character: CharacterWrite,
     character_id: int,
     session: Session = Depends(get_db),
+    permitted_stories: set[str] = Depends(get_permitted_stories),
 ) -> None:
     try:
-        CharacterService.update_character(session, character_id, character)
+        CharacterService.update_character(
+            session, character_id, character, permitted_stories
+        )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
 @router.delete("/characters/{character_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_character_by_id(
-    character_id: int, session: Session = Depends(get_db)
+    character_id: int,
+    session: Session = Depends(get_db),
+    permitted_stories: set[str] = Depends(get_permitted_stories),
 ) -> None:
     try:
-        CharacterService.delete_character(session, character_id)
+        CharacterService.delete_character(session, character_id, permitted_stories)
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

@@ -27,7 +27,10 @@ class TestCreateCharCon:
         db_session.commit()
 
         CharacterConnectionsService.create_pairwise_connection(
-            db_session, g.id, rc1, c.id
+            db_session,
+            g.id,
+            rc1,
+            c.id,  # type: ignore
         )
 
         got = defaultdict(dict)
@@ -64,8 +67,8 @@ class TestCreateCharCon:
 
         CharacterConnectionsService.create_faction_connection(
             db_session,
-            g.id,
-            f.id,
+            g.id, # type: ignore
+            f.id, # type: ignore
         )
 
         partnership = db_session.exec(
@@ -75,8 +78,8 @@ class TestCreateCharCon:
         assert partnership.type == int(Ptype.FACTION)
         assert partnership.participants == [
             PartnershipParticipant(
-                partnership_id=partnership.id,
-                character_id=g.id,
+                partnership_id=partnership.id, # type: ignore
+                character_id=g.id,             # type: ignore 
                 role_code=RoleCode.MEMBER,
             )
         ]

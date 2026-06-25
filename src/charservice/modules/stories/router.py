@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from typing import Any
 
 from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session
@@ -16,3 +17,10 @@ async def get_permitted_stories(
 ) -> Sequence[int]:
 
     return SagaService.get_permitted_stories(session, user_id)
+
+@router.get("/get_permitted_stories_by_ids")
+async def get_permitted_stories_by_ids(
+    session: Session = Depends(get_db),
+    permitted_stories: set[str] = Depends(get_permitted_stories)) -> list[dict[str, str | Any | None]]:
+
+    return SagaService.get_permitted_story_names_by_ids(session, permitted_stories)

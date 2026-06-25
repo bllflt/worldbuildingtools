@@ -39,32 +39,24 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(stories.router, prefix="/api/v1")
-app.include_router(
-    characters.router, prefix="/api/v1", dependencies=[Depends(get_current_user)]
-)
+app.include_router(characters.router, prefix="/api/v1")
 app.include_router(
     character_connections.router,
     prefix="/api/v1",
-    dependencies=[Depends(get_current_user)],
 )
-app.include_router(
-    partnerships.router, prefix="/api/v1", dependencies=[Depends(get_current_user)]
-)
+app.include_router(partnerships.router, prefix="/api/v1")
 app.include_router(
     partnership_participants.router,
     prefix="/api/v1",
-    dependencies=[Depends(get_current_user)],
 )
 
 app.include_router(
     ai.router, prefix="/api/v1", dependencies=[Depends(get_current_user)]
 )
-app.include_router(
-    events.router, prefix="/api/v1", dependencies=[Depends(get_current_user)]
-)
+app.include_router(events.router, prefix="/api/v1")
 
 app.include_router(
     chat.router, prefix="/api/v1", dependencies=[Depends(get_current_user)]
 )
 
-app.include_router(images.router, dependencies=[Depends(get_current_user)])
+app.include_router(images.router)

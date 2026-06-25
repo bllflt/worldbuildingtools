@@ -60,7 +60,7 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
 
     app.dependency_overrides[get_current_user] = override_get_current_user
     app.dependency_overrides[get_db] = override_get_db
-    yield TestClient(app)
+    yield TestClient(app, headers={"X-Permitted-Stories": "test-story"})
     # Cleanup: Remove the overrides after the tests
     app.dependency_overrides.clear()
 

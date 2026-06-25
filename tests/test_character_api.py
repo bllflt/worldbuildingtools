@@ -6,7 +6,7 @@ from charservice.models.model import Character, Image, Roleplaying
 class TestCharacterApiGet:
     def test_get_characters(self, db_session, client):
         graurog = Character(
-            story_uuid="story1",
+            story_uuid="test-story",
             name="Graurog",
             appearance="Female Ogrillon (Orc-Ogre)",
             background=None,
@@ -16,7 +16,7 @@ class TestCharacterApiGet:
             ],
         )
         cinsora = Character(
-            story_uuid="story1",
+            story_uuid="test-story",
             name="Cinsora",
             appearance="Dragonborne",
             background=None,
@@ -28,7 +28,7 @@ class TestCharacterApiGet:
 
         db_session.add_all([graurog, cinsora])
         db_session.commit()
-        response = client.get("/api/v1/characters")
+        response = client.get("/api/v1/stories/test-story/characters")
 
         assert response.status_code == 200
         data = response.json()
@@ -44,7 +44,7 @@ class TestCharacterApiGet:
                 "appearance": "Dragonborne",
                 "roleplaying": ["Charming but unrefined", "Collects trinkets"],
                 "sex": 9,
-                "story_uuid": "story1",
+                "story_uuid": "test-story",
                 "images": [],
             },
             {
@@ -52,7 +52,7 @@ class TestCharacterApiGet:
                 "background": None,
                 "appearance": "Female Ogrillon (Orc-Ogre)",
                 "roleplaying": ["Blunt and direct", "Loyal and protective"],
-                "story_uuid": "story1",
+                "story_uuid": "test-story",
                 "sex": 9,
                 "images": [],
             },
@@ -96,7 +96,7 @@ class TestCharacterApiGet:
         db_session.add_all([c, b, a])
         db_session.commit()
 
-        got = client.get("/api/v1/characters?sort=name").json()
+        got = client.get("/api/v1/stories/test-story/characters?sort=name").json()
         got = list(map(lambda x: x["name"], got))
         assert got == ["a", "b", "c"]
 
@@ -110,7 +110,9 @@ class TestCharacterApiGet:
         db_session.add_all([c, b, a, bill, billy, ybill])
         db_session.commit()
 
-        got = client.get("/api/v1/characters?sort=name&name=bill").json()
+        got = client.get(
+            "/api/v1/stories/test-story/characters?sort=name&name=bill"
+        ).json()
         got = list(map(lambda x: x["name"], got))
         assert got == ["bill", "billy", "ybill"]
 
@@ -127,7 +129,7 @@ class TestCharacterApiGet:
         db_session.add_all([c, b, a])
         db_session.commit()
 
-        got = client.get("/api/v1/characters?fields=id,name").json()
+        got = client.get("/api/v1/stories/test-story/characters?fields=id,name").json()
         assert sorted(got, key=lambda x: x["name"]) == [
             {"id": 3, "name": "a"},
             {"id": 2, "name": "b"},
@@ -135,7 +137,7 @@ class TestCharacterApiGet:
         ], got
 
     def test_fields_error(self, client):
-        response = client.get("/api/v1/characters?fields=mu,nil")
+        response = client.get("/api/v1/stories/test-story/characters?fields=mu,nil")
         assert response.status_code == 400
         assert "Invalid fields requested" in response.json()["detail"]
 
@@ -143,10 +145,10 @@ class TestCharacterApiGet:
 class TestCharacterApiPost:
     def test_post_character(self, db_session, client):
         response = client.post(
-            "/api/v1/characters",
+            "/api/v1/stories/test-story/characters",
             json={
                 "name": "Graurog",
-                "story_uuid": "story1",
+                "story_uuid": "test-story",
                 "appearance": "Female Ogrillon (Orc-Ogre)",
                 "background": "",
                 "roleplaying": [],
@@ -156,7 +158,7 @@ class TestCharacterApiPost:
         assert response.json() == {
             "id": 1,
             "name": "Graurog",
-            "story_uuid": "story1",
+            "story_uuid": "test-story",
             "appearance": "Female Ogrillon (Orc-Ogre)",
             "background": "",
             "roleplaying": [],
@@ -172,10 +174,10 @@ class TestCharacterApiPost:
 class TestCharacterApiPut:
     def test_put_character(self, db_session, client):
         client.post(
-            "/api/v1/characters",
+            "/api/v1/stories/test-story/characters",
             json={
                 "name": "Graurogo",
-                "story_uuid": "story1",
+                "story_uuid": "test-story",
                 "appearance": "Female Ogrillon (Orc-Ogre)",
                 "background": "",
                 "roleplaying": [],
@@ -185,7 +187,7 @@ class TestCharacterApiPut:
             "/api/v1/characters/1",
             json={
                 "name": "Graurog",
-                "story_uuid": "story1",
+                "story_uuid": "test-story",
                 "appearance": "Female Ogrillon (Orc-Ogre)",
                 "background": "",
                 "roleplaying": [],
@@ -201,9 +203,9 @@ class TestCharacterApiPut:
 
     def test_put_w_roleplaying_images(self, db_session, client):
         response = client.post(
-            "/api/v1/characters",
+            "/api/v1/stories/test-story/characters",
             json={
-                "story_uuid": "story1",
+                "story_uuid": "test-story",
                 "name": "Graurog",
                 "roleplaying": [
                     "Blunt and direct",
@@ -220,7 +222,7 @@ class TestCharacterApiPut:
             f"/api/v1/characters/{new_id}",
             json={
                 "name": "Graurog",
-                "story_uuid": "story1",
+                "story_uuid": "test-story",
                 "roleplaying": ["Likes cheeese"],
                 "images": [
                     "123434556.png",
@@ -293,7 +295,7 @@ class TestCharacterApiPut:
 class TestCharacterApiDelete:
     def test_delete(self, db_session, client):
         graurog = Character(
-            story_uuid="story1",
+            story_uuid="test-story",
             name="Graurog",
             appearance="Female Ogrillon (Orc-Ogre)",
             background=None,
@@ -304,7 +306,7 @@ class TestCharacterApiDelete:
         )
         cinsora = Character(
             name="Cinsora",
-            story_uuid="story1",
+            story_uuid="test-story",
             appearance="Dragonborne",
             background=None,
             roleplaying_attributes=[

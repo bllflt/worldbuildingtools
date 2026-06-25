@@ -68,7 +68,7 @@ def get_permitted_stories(header: str = Depends(header_scheme)) -> list[str]:
         )
 
     try:
-        stories = header[19:].split(",")
+        stories = header.split(",")
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

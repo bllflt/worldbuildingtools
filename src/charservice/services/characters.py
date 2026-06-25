@@ -1,15 +1,23 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from charservice.models.model import Character, CharacterWrite, Image, Roleplaying
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
+
+from charservice.models.model import (
+    Character,
+    CharacterCreate,
+    CharacterWrite,
+    Image,
+    Roleplaying,
+)
 
 
 @dataclass(slots=True)
 class CharacterQuery:
     """Query parameters for retrieving Character objects."""
 
+    story_uuid: str
     sort: Optional[str] = None
     name: Optional[str] = None
     fields: Optional[set[str]] = None
@@ -17,10 +25,9 @@ class CharacterQuery:
 
 class CharacterService:
     @staticmethod
-    def get_characters(session: Session, query: CharacterQuery | None = None):
+    def get_characters(session: Session, query: CharacterQuery) -> list[Character]:
         """Retrieve characters with optional sorting, filtering, and field selection."""
-        query = query or CharacterQuery()
-        stmt = select(Character)
+        stmt = select(Character).where(Character.story_uuid == query.story_uuid)
 
         if query.fields:
             stmt = select(*(getattr(Character, f) for f in query.fields))
@@ -40,22 +47,40 @@ class CharacterService:
         return session.exec(stmt).all()
 
     @staticmethod
-    def get_character_by_id(session: Session, character_id: int) -> Character | None:
+    def get_character_by_id(
+        session: Session, character_id: int, permitted_stories: set[str] | None = None
+    ) -> Character | None:
         """Retrieve a character by its ID."""
-        return session.get(
-            Character,
-            character_id,
-            options=(
-                selectinload(Character.roleplaying_attributes),
-                selectinload(Character.image_attributes),
-            ),
-        )
+        if permitted_stories is None:
+            return session.get(
+                Character,
+                character_id,
+                options=(
+                    selectinload(Character.roleplaying_attributes),
+                    selectinload(Character.image_attributes),
+                ),
+            )
+        else:
+            return session.exec(
+                select(Character)
+                .where(
+                    Character.id == character_id,
+                    Character.story_uuid.in_(permitted_stories),
+                )
+                .options(
+                    selectinload(Character.roleplaying_attributes),
+                    selectinload(Character.image_attributes),
+                )
+            ).one_or_none()
 
     @staticmethod
-    def create_character(session: Session, character: CharacterWrite) -> Character:
+    def create_character(
+        session: Session, story_uuid: str, character: CharacterCreate
+    ) -> Character:
         """Create a new character."""
         character_data = character.model_dump(exclude={"attributes", "images"})
         db_character = Character.model_validate(character_data)
+        db_character.story_uuid = story_uuid
         db_character.roleplaying_attributes = [
             Roleplaying(characteristic=attr) for attr in character.roleplaying
         ]
@@ -67,10 +92,15 @@ class CharacterService:
 
     @staticmethod
     def update_character(
-        session: Session, character_id: int, character: CharacterWrite
+        session: Session,
+        character_id: int,
+        character: CharacterWrite,
+        permitted_stories: set[str] | None,
     ) -> None:
         """Update an existing character."""
-        db_character = CharacterService.get_character_by_id(session, character_id)
+        db_character = CharacterService.get_character_by_id(
+            session, character_id, permitted_stories
+        )
         if not db_character:
             raise ValueError(f"Character with id {character_id} not found")
 
@@ -78,14 +108,16 @@ class CharacterService:
         for key, value in update_data.items():
             setattr(db_character, key, value)
 
-        old_attributes = [i.characteristic for i in db_character.roleplaying_attributes]     
+        old_attributes = [i.characteristic for i in db_character.roleplaying_attributes]
         for attr in db_character.roleplaying_attributes:
             if attr.characteristic not in character.roleplaying:
                 session.delete(attr)
         for attr in character.roleplaying:
             if attr not in old_attributes:
-                db_character.roleplaying_attributes.append(Roleplaying(characteristic=attr))
-        
+                db_character.roleplaying_attributes.append(
+                    Roleplaying(characteristic=attr)
+                )
+
         old_images = [i.uri for i in db_character.image_attributes]
         for img in db_character.image_attributes:
             if img.uri not in character.images:
@@ -97,9 +129,13 @@ class CharacterService:
         session.commit()
 
     @staticmethod
-    def delete_character(session: Session, character_id: int) -> None:
+    def delete_character(
+        session: Session, character_id: int, permitted_stories: set[str] | None
+    ) -> None:
         """Delete a character."""
-        character = session.get(Character, character_id)
+        character = CharacterService.get_character_by_id(
+            session, character_id, permitted_stories
+        )
         if not character:
             raise ValueError(f"Character with id {character_id} not found")
         session.delete(character)

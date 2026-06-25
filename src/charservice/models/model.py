@@ -80,14 +80,17 @@ class CharacterReadMCP(CharacterRead):
     )
 
 
-class CharacterWrite(CharacterBase):
-    story_uuid: str
+class CharacterCreate(CharacterBase):
     roleplaying: list[str] = []
     images: list[str] = []
 
 
+class CharacterWrite(CharacterCreate):
+    story_uuid: str
+
+
 class Roleplaying(SQLModel, table=True):
-    __tablename__ = "roleplaying" # type: ignore[override]
+    __tablename__ = "roleplaying"  # type: ignore[override]
 
     id: int | None = Field(default=None, primary_key=True)
     characteristic: str | None = Field(
@@ -102,7 +105,7 @@ class Roleplaying(SQLModel, table=True):
 
 
 class Image(SQLModel, table=True):
-    __tablename__ = "images" # type: ignore[override]
+    __tablename__ = "images"  # type: ignore[override]
 
     id: int | None = Field(default=None, primary_key=True)
     character_id: int | None = Field(
@@ -152,7 +155,7 @@ class PartnershipBase(BaseModel):
 
 
 class Partnership(SQLModel, PartnershipBase, table=True):
-    __tablename__ = "partnerships" # type: ignore[override]
+    __tablename__ = "partnerships"  # type: ignore[override]
     id: int | None = Field(default=None, primary_key=True)
     type: int = Field(sa_column_args=[CheckConstraint("type IN (1, 2)")])
     participants: list["PartnershipParticipant"] = Relationship(cascade_delete=True)
@@ -162,7 +165,7 @@ class PartnershipWrite(PartnershipBase): ...
 
 
 class Role(SQLModel, table=True):
-    __tablename__ = "roles" # type: ignore[override]
+    __tablename__ = "roles"  # type: ignore[override]
     code: str = Field(default=None, primary_key=True)
     description: str | None = None
 
@@ -179,7 +182,7 @@ class PartnershipParticipantWrite(PartnershipParticipantRead):
 
 
 class PartnershipParticipant(SQLModel, table=True):
-    __tablename__ = "partnership_participants" # type: ignore[override]
+    __tablename__ = "partnership_participants"  # type: ignore[override]
     __table_args__ = (
         UniqueConstraint(
             "partnership_id", "character_id", name="_partnership_character_uc"

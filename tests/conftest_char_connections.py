@@ -11,19 +11,19 @@ def family_tree_setup(client: TestClient) -> dict[str, int]:
     Returns a dictionary of the created character and partnership IDs.
     """
     father_id = client.post(
-        "/api/v1/characters", json={"story_uuid": "test-story", "name": "Father", "sex": Sex.MALE}
+        "/api/v1/stories/test-story/characters", json={"story_uuid": "test-story", "name": "Father", "sex": Sex.MALE}
     ).json()["id"]
     mother_id = client.post(
-        "/api/v1/characters", json={"story_uuid": "test-story", "name": "Mother", "sex": Sex.FEMALE}
+        "/api/v1/stories/test-story/characters", json={"story_uuid": "test-story", "name": "Mother", "sex": Sex.FEMALE}
     ).json()["id"]
     child1_id = client.post(
-        "/api/v1/characters", json={"story_uuid": "test-story", "name": "Child1", "sex": Sex.UNKNOWN}
+        "/api/v1/stories/test-story/characters", json={"story_uuid": "test-story", "name": "Child1", "sex": Sex.UNKNOWN}
     ).json()["id"]
     child2_id = client.post(
-        "/api/v1/characters",
+        "/api/v1/stories/test-story/characters",
         json={"story_uuid": "test-story", "name": "Child2", "sex": Sex.UNKNOWN},
     ).json()["id"]
-    unrelated_id = client.post("/api/v1/characters", json={"story_uuid": "test-story", "name": "Unrelated"}).json()[
+    unrelated_id = client.post("/api/v1/stories/test-story/characters", json={"story_uuid": "test-story", "name": "Unrelated"}).json()[
         "id"
     ]
     partnership_id = client.post(
