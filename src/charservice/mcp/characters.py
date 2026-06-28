@@ -15,6 +15,7 @@ def get_character_id_list() -> list[tuple[str, int]]:
         rv = CharacterService.get_characters(
             session,
             CharacterQuery(
+                story_uuid="1",
                 fields={"id", "name"},
             ),
         )
@@ -42,6 +43,7 @@ def search_character_by_name_substring(name_substring: str) -> list[tuple[str, i
         rv = CharacterService.get_characters(
             session,
             CharacterQuery(
+                story_uuid="1",
                 name=name_substring,
                 fields={"id", "name"},
             ),
@@ -55,7 +57,7 @@ def add_character(character: CharacterWrite) -> CharacterReadMCP:
     Add a new character.
     """
     with get_db_context() as session:
-        char = CharacterService.create_character(session, character)
+        char = CharacterService.create_character(session, story_uuid="1", character=character)
         return CharacterReadMCP.model_validate(char)
 
 
@@ -67,7 +69,7 @@ def update_character(char_id: int, character: CharacterWrite) -> None:
     Do not assume fields are preserved if omitted.
     """
     with get_db_context() as session:
-        CharacterService.update_character(session, char_id, character)
+        CharacterService.update_character(session, char_id, character, permitted_stories=["1"])
 
 
 @mcp.tool()
@@ -76,4 +78,4 @@ def delete_character(char_id: int) -> None:
     Delete a character.
     """
     with get_db_context() as session:
-        CharacterService.delete_character(session, char_id)
+        CharacterService.delete_character(session, char_id, permitted_stories=["1"])

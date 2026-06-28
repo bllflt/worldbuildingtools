@@ -31,6 +31,7 @@ class CharacterService:
 
         if query.fields:
             stmt = select(*(getattr(Character, f) for f in query.fields))
+            stmt = stmt.where(Character.story_uuid == query.story_uuid)
 
         if query.sort:
             stmt = stmt.order_by(getattr(Character, query.sort))
