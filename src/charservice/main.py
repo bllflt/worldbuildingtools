@@ -1,6 +1,7 @@
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastmcp import FastMCP
+from fastmcp.server.auth.providers.jwt import JWTVerifier
 
 from charservice.config import config
 from charservice.mcp.character_connections import mcp as mcp_character_connections
@@ -19,7 +20,12 @@ from charservice.routers import (
     partnerships,
 )
 
-mcp = FastMCP("My App MCP")
+verfier = JWTVerifier(
+    public_key=config.jwt_secret,
+    algorithm="HS256",
+)
+
+mcp = FastMCP("My App MCP", auth=verfier)
 mcp.mount(mcp_characters)
 mcp.mount(mcp_character_connections)
 mcp_app = mcp.http_app("/")
@@ -60,3 +66,8 @@ app.include_router(
 )
 
 app.include_router(images.router)
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=2000)

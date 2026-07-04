@@ -1,7 +1,9 @@
+from fastmcp import FastMCP
+from fastmcp.server.dependencies import get_access_token
+
 from charservice.db import get_db_context
 from charservice.models.model import CharacterReadMCP, CharacterWrite
 from charservice.services.characters import CharacterQuery, CharacterService
-from fastmcp import FastMCP
 
 mcp = FastMCP("Character Tools")
 
@@ -11,11 +13,12 @@ def get_character_id_list() -> list[tuple[str, int]]:
     """
     A list of all character names and ids.
     """
+    token = get_access_token()
     with get_db_context() as session:
         rv = CharacterService.get_characters(
             session,
             CharacterQuery(
-                story_uuid="1",
+                story_uuid=token.claims.get("story_uuid"),
                 fields={"id", "name"},
             ),
         )
@@ -29,8 +32,13 @@ def get_character_summary(
     """
     Get the general summary of a character with the given ID.
     """
+    token = get_access_token()
     with get_db_context() as session:
-        char = CharacterService.get_character_by_id(session, character_id)
+        char = CharacterService.get_character_by_id(
+            session,
+            character_id,
+            permitted_stories=token.claims.get("permitted_stories"),
+        )
         return CharacterReadMCP.model_validate(char)
 
 
@@ -57,7 +65,9 @@ def add_character(character: CharacterWrite) -> CharacterReadMCP:
     Add a new character.
     """
     with get_db_context() as session:
-        char = CharacterService.create_character(session, story_uuid="1", character=character)
+        char = CharacterService.create_character(
+            session, story_uuid="1", character=character
+        )
         return CharacterReadMCP.model_validate(char)
 
 
@@ -69,7 +79,9 @@ def update_character(char_id: int, character: CharacterWrite) -> None:
     Do not assume fields are preserved if omitted.
     """
     with get_db_context() as session:
-        CharacterService.update_character(session, char_id, character, permitted_stories=["1"])
+        CharacterService.update_character(
+            session, char_id, character, permitted_stories=["1"]
+        )
 
 
 @mcp.tool()

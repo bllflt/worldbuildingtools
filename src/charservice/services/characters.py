@@ -49,8 +49,7 @@ class CharacterService:
 
     @staticmethod
     def get_character_by_id(
-        session: Session, character_id: int, permitted_stories: set[str] | None = None
-    ) -> Character | None:
+        session: Session, character_id: int, permitted_stories: set[str]) -> Character | None:
         """Retrieve a character by its ID."""
         if permitted_stories is None:
             return session.get(
