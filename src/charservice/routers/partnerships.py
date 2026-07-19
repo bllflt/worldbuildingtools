@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session
 
 from charservice.db import get_db
-from charservice.models.model import Partnership, PartnershipWrite
+from charservice.models.model import Partnership
+from charservice.models.schemas import PartnershipWrite
 from charservice.services.partnerships import PartnershipQuery, PartnershipService
 
 router = APIRouter(

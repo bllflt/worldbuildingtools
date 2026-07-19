@@ -1,15 +1,12 @@
 from typing import Sequence
+from uuid import UUID
 
 from sqlalchemy import text
 from sqlmodel import Session, func, select
 
 from charservice.models.enums import Ptype
-from charservice.models.model import (
-    Character,
-    Partnership,
-    PartnershipParticipant,
-    PartnershipParticipantWrite,
-)
+from charservice.models.model import Character, Partnership, PartnershipParticipant
+from charservice.models.schemas import PartnershipParticipantWrite
 
 
 class PartnershipParticipantService:
@@ -30,7 +27,7 @@ class PartnershipParticipantService:
 
     @staticmethod
     def get_participant(
-        session: Session, partnership_id: int, character_id: int
+        session: Session, partnership_id: int, character_id: UUID
     ) -> PartnershipParticipant | None:
         """Retrieve a specific participant in a partnership."""
         return session.exec(
@@ -70,7 +67,7 @@ class PartnershipParticipantService:
     def update_participant(
         session: Session,
         partnership_id: int,
-        character_id: int,
+        character_id: UUID,
         participant: PartnershipParticipantWrite,
     ) -> PartnershipParticipant:
         """Update a participant's role in a partnership."""
@@ -89,7 +86,7 @@ class PartnershipParticipantService:
 
     @staticmethod
     def delete_participant(
-        session: Session, partnership_id: int, character_id: int
+        session: Session, partnership_id: int, character_id: UUID
     ) -> None:
         """Remove a participant from a partnership."""
         pp = session.exec(
@@ -118,7 +115,7 @@ class PartnershipParticipantService:
 
     @staticmethod
     def find_laison_containing_characters(
-        session: Session, character_ids: list[int]
+        session: Session, character_ids: list[UUID]
     ) -> int | None:
         """Get  liaison partnership that contain  the specified character IDs."""
         return session.exec(
@@ -149,7 +146,7 @@ class PartnershipParticipantService:
             raise ValueError(f"Partnership with id {partnership_id} not found")
 
     @staticmethod
-    def _validate_character_exists(session: Session, character_id: int) -> None:
+    def _validate_character_exists(session: Session, character_id: UUID) -> None:
         """Internal helper to validate character exists."""
         found = session.exec(
             text("select exists(select 1 from character where id = :cid)"),

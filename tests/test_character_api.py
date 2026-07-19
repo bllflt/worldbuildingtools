@@ -71,11 +71,11 @@ class TestCharacterApiGet:
         db_session.add_all([graurog])
         db_session.commit()
 
-        response = client.get("/api/v1/characters/1")
+        response = client.get(f"/api/v1/characters/{graurog.id}")
         assert response.json() == {
             "appearance": None,
             "background": None,
-            "id": 1,
+            "id": str(graurog.id),
             "story_uuid": "test-story",
             "sex": 9,
             "roleplaying": [],
@@ -84,10 +84,11 @@ class TestCharacterApiGet:
         }
 
     def test_get_error_no_exist(self, client):
-        response = client.get("/api/v1/characters/1")
+        uuid = "00000000-0000-0000-0000-000000000001"
+        response = client.get(f"/api/v1/characters/{uuid}")
 
         assert response.status_code == 404
-        assert response.json() == {"detail": "Character with id 1 not found"}
+        assert response.json() == {"detail": f"Character with id {uuid} not found"}
 
     def test_sorted_by_name(self, db_session, client):
         a = Character(story_uuid="test-story", name="a")
@@ -131,9 +132,9 @@ class TestCharacterApiGet:
 
         got = client.get("/api/v1/stories/test-story/characters?fields=id,name").json()
         assert sorted(got, key=lambda x: x["name"]) == [
-            {"id": 3, "name": "a"},
-            {"id": 2, "name": "b"},
-            {"id": 1, "name": "c"},
+            {"id": str(a.id), "name": "a"},
+            {"id": str(b.id), "name": "b"},
+            {"id": str(c.id), "name": "c"},
         ], got
 
     def test_fields_error(self, client):
@@ -154,9 +155,13 @@ class TestCharacterApiPost:
                 "roleplaying": [],
             },
         )
+        got = db_session.exec(
+            (select(Character).where(Character.name == "Graurog"))
+        ).one()
+        assert got is not None
         assert response.status_code == 201
         assert response.json() == {
-            "id": 1,
+            "id": str(got.id),
             "name": "Graurog",
             "story_uuid": "test-story",
             "appearance": "Female Ogrillon (Orc-Ogre)",
@@ -165,15 +170,12 @@ class TestCharacterApiPost:
             "images": [],
             "sex": 9,
         }
-        got = db_session.exec(
-            (select(Character).where(Character.name == "Graurog"))
-        ).one()
-        assert got is not None
+       
 
 
 class TestCharacterApiPut:
     def test_put_character(self, db_session, client):
-        client.post(
+        post_response = client.post(
             "/api/v1/stories/test-story/characters",
             json={
                 "name": "Graurogo",
@@ -184,7 +186,7 @@ class TestCharacterApiPut:
             },
         )
         response = client.put(
-            "/api/v1/characters/1",
+            f"/api/v1/characters/{post_response.json()["id"]}",
             json={
                 "name": "Graurog",
                 "story_uuid": "test-story",
@@ -317,7 +319,7 @@ class TestCharacterApiDelete:
         db_session.add_all([graurog, cinsora])
         db_session.commit()
 
-        response = client.delete("/api/v1/characters/1")
+        response = client.delete(f"/api/v1/characters/{graurog.id}")
         assert response.status_code == 204
 
         db_session.expire_all()
@@ -327,11 +329,12 @@ class TestCharacterApiDelete:
         assert gaurog is None
 
         roleplaying = db_session.exec(
-            select(Roleplaying).where(Roleplaying.character_id == 1)
+            select(Roleplaying).where(Roleplaying.character_id == graurog.id)
         ).all()
         assert roleplaying == []
 
     def test_delete_not_found(self, client):
-        response = client.delete("/api/v1/characters/999")
+        uuid = "00000000-0000-0000-0000-000000000999"
+        response = client.delete(f"/api/v1/characters/{uuid}")
         assert response.status_code == 404
-        assert response.json() == {"detail": "Character with id 999 not found"}
+        assert response.json() == {"detail": f"Character with id {uuid} not found"}

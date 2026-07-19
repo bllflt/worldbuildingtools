@@ -1,7 +1,9 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, Query, status
 
 from charservice.db import Session, get_db
-from charservice.models.model import SocialConnection
+from charservice.models.schemas import SocialConnection
 from charservice.services.character_connections import CharacterConnectionsService
 
 router = APIRouter(
@@ -20,7 +22,7 @@ router = APIRouter(
     },
 )
 async def get_connections_by_charcter_id(
-    character_id: int,
+    character_id: UUID,
     degree: int = Query(
         description="Degree of social graph to return (0-3)",
         ge=0,

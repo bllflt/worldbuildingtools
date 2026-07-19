@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from charservice.models.model import Partnership, PartnershipWrite, Ptype
 from sqlmodel import Session, select
+
+from charservice.models.model import Partnership, Ptype
+from charservice.models.schemas import PartnershipWrite
 
 
 @dataclass(slots=True)
@@ -40,7 +42,9 @@ class PartnershipService:
         return session.get(Partnership, partnership_id)
 
     @staticmethod
-    def create_partnership(session: Session, partnership: PartnershipWrite) -> Partnership:
+    def create_partnership(
+        session: Session, partnership: PartnershipWrite
+    ) -> Partnership:
         """Create a new partnership."""
         db_partnership = Partnership.model_validate(partnership.model_dump())
         session.add(db_partnership)

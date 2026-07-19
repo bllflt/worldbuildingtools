@@ -1,16 +1,13 @@
 from typing import List, Sequence
+from uuid import UUID
 
 from fastmcp import FastMCP
 from pydantic import Field
 
 from charservice.db import get_db_context
 from charservice.models.enums import RoleCode
-from charservice.models.model import (
-    Character,
-    Partnership,
-    PartnershipParticipantWrite,
-    SocialConnection,
-)
+from charservice.models.model import Character, Partnership
+from charservice.models.schemas import PartnershipParticipantWrite, SocialConnection
 from charservice.services.character_connections import CharacterConnectionsService
 from charservice.services.partnership_participants import PartnershipParticipantService
 from charservice.services.partnerships import PartnershipQuery, PartnershipService
@@ -20,7 +17,7 @@ mcp = FastMCP("Character Connections Tools")
 
 @mcp.tool()
 def get_character_connections(
-    character_id: int = Field(
+    character_id: UUID = Field(
         description="The ID of the character to get connections for"
     ),
     depth: int = Field(
@@ -45,9 +42,9 @@ def get_character_connections(
 
 @mcp.tool()
 def create_character_connection(
-    src_character_id: int = Field(description="Source character ID"),
+    src_character_id: UUID = Field(description="Source character ID"),
     role: RoleCode = Field(description="Role of the first character in the connection"),
-    target_character_id: int = Field(description="Target character ID"),
+    target_character_id: UUID = Field(description="Target character ID"),
 ) -> None:
     """
     Create a bidirection connection between the source character id and target character id with the specified role. The inverse role will be automatically assigned to the target character.
@@ -80,7 +77,7 @@ def get_faction_members(
 
 @mcp.tool()
 def create_faction_connection(
-    character_id: int = Field(description="Character ID to add to faction"),
+    character_id: UUID = Field(description="Character ID to add to faction"),
     faction_id: int = Field(description="Faction ID to join"),
 ) -> None:
     """Add a character to a faction."""
@@ -92,7 +89,7 @@ def create_faction_connection(
 
 @mcp.tool()
 def find_liaison_containing_characters(
-    character_ids: list[int] = Field(
+    character_ids: list[UUID] = Field(
         description="List of character IDs to find a liaison connection for"
     ),
 ) -> int | None:

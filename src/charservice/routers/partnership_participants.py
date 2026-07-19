@@ -1,8 +1,10 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session
 
 from charservice.db import get_db
-from charservice.models.model import (
+from charservice.models.schemas import (
     PartnershipParticipantRead,
     PartnershipParticipantWrite,
 )
@@ -43,7 +45,7 @@ async def add_participants(
     "/partnerships/{pid}/participants/{cid}", response_model=PartnershipParticipantRead
 )
 async def get_participant(
-    pid: int, cid: int, session: Session = Depends(get_db)
+    pid: int, cid: UUID, session: Session = Depends(get_db)
 ) -> PartnershipParticipantRead:
     try:
         pp = PartnershipParticipantService.get_participant(session, pid, cid)
@@ -59,7 +61,7 @@ async def get_participant(
 )
 async def update_participant(
     pid: int,
-    cid: int,
+    cid: UUID,
     participant: PartnershipParticipantWrite,
     session: Session = Depends(get_db),
 ) -> None:
@@ -73,7 +75,7 @@ async def update_participant(
     "/partnerships/{pid}/participants/{cid}", status_code=status.HTTP_204_NO_CONTENT
 )
 async def delete_participant(
-    pid: int, cid: int, session: Session = Depends(get_db)
+    pid: int, cid: UUID, session: Session = Depends(get_db)
 ) -> None:
     try:
         PartnershipParticipantService.delete_participant(session, pid, cid)

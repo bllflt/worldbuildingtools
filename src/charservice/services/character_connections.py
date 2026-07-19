@@ -1,21 +1,19 @@
 import json
 from typing import List
+from uuid import UUID
 
 from sqlmodel import select, text
 
 from charservice.db import Session
 from charservice.models.enums import Ptype, RoleCode
-from charservice.models.model import (
-    Partnership,
-    PartnershipParticipant,
-    SocialConnection,
-)
+from charservice.models.model import Partnership, PartnershipParticipant
+from charservice.models.schemas import SocialConnection
 
 
 class CharacterConnectionsService:
     @staticmethod
     def get_connections_by_character_id(
-        session: Session, character_id: int, depth: int
+        session: Session, character_id: UUID, depth: int
     ) -> List[SocialConnection]:
         """
         Retrieve social connections for a character up to the specified depth.
@@ -35,7 +33,7 @@ WITH RECURSIVE
 
 -- start character
 start_char AS (
-  SELECT :cid AS id
+  SELECT :cid  AS id
 ),
 
 -- expand to N degrees (depth)
@@ -61,14 +59,14 @@ all_partnerships AS (
 
 -- output each partnership as JSON with nested participants
 SELECT
-  json_object(
+  json_build_object(
     'id', p.id,
     'type', p.type,
     'name', p.name,
     'participants',
       (
-        SELECT json_group_array(
-          json_object(
+        SELECT json_agg(
+          json_build_object(
             'id', c.id,
             'name', c.name,
             'sex', c.sex,
@@ -79,7 +77,7 @@ SELECT
         JOIN character c ON c.id = pp.character_id
         WHERE pp.partnership_id = p.id
       )
-) AS partnerships_json
+  ) AS partnerships_json
 FROM all_partnerships p;
 
                 """),
@@ -88,12 +86,18 @@ FROM all_partnerships p;
             .mappings()
             .all()
         )
-        connections = [json.loads(row["partnerships_json"]) for row in rows]
+        connections = []
+        for row in rows:
+            val = row["partnerships_json"]
+            if isinstance(val, str):
+                connections.append(json.loads(val))
+            else:
+                connections.append(val)
         return connections
 
     @staticmethod
     def create_pairwise_connection(
-        session: Session, src_character_id: int, role: RoleCode, target_id: int
+        session: Session, src_character_id: UUID, role: RoleCode, target_id: UUID
     ) -> None:
 
         match role:
@@ -125,7 +129,7 @@ FROM all_partnerships p;
 
     @staticmethod
     def create_faction_connection(
-        session: Session, character_id: int, faction_id: int
+        session: Session, character_id: UUID, faction_id: int
     ) -> None:
         participant = PartnershipParticipant(
             partnership_id=faction_id,

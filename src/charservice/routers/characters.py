@@ -1,9 +1,12 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.responses import JSONResponse
 from sqlmodel import Session
 
 from charservice.db import get_db
-from charservice.models.model import Character, CharacterCreate, CharacterRead, CharacterWrite
+from charservice.models.model import Character
+from charservice.models.schemas import CharacterCreate, CharacterRead, CharacterWrite
 from charservice.modules.auth.service import get_permitted_stories
 from charservice.services.characters import CharacterQuery, CharacterService
 
@@ -71,6 +74,8 @@ async def get_characters_list(
     rv = []
     for row in results:
         filtered_item = {k: row[i] for i, k in enumerate(include_fields)}
+        if "id" in include_fields:
+            filtered_item["id"] = str(row.id)
         rv.append(filtered_item)
     return JSONResponse(content=rv)
 
@@ -88,7 +93,7 @@ async def create_character(
 
 @router.get("/characters/{character_id}", response_model=CharacterRead)
 async def get_character_by_id(
-    character_id: int,
+    character_id: UUID,
     session: Session = Depends(get_db),
     permitted_stories: set[str] = Depends(get_permitted_stories),
 ) -> Character:
@@ -107,7 +112,7 @@ async def get_character_by_id(
 @router.put("/characters/{character_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def update_character_by_id(
     character: CharacterWrite,
-    character_id: int,
+    character_id: UUID,
     session: Session = Depends(get_db),
     permitted_stories: set[str] = Depends(get_permitted_stories),
 ) -> None:
@@ -121,7 +126,7 @@ async def update_character_by_id(
 
 @router.delete("/characters/{character_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_character_by_id(
-    character_id: int,
+    character_id: UUID,
     session: Session = Depends(get_db),
     permitted_stories: set[str] = Depends(get_permitted_stories),
 ) -> None:

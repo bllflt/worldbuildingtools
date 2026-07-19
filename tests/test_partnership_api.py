@@ -205,7 +205,8 @@ class TestPartnershipParticipantApiGet:
 
     def test_get_participant_not_found(self, client):
         """Test 404 when participant doesn't exist."""
-        response = client.get("/api/v1/partnerships/1/participants/1")
+        uuid = "00000000-0000-0000-0000-000000000999"
+        response = client.get(f"/api/v1/partnerships/1/participants/{uuid}")
         assert response.status_code == 404
 
 
@@ -219,8 +220,8 @@ class TestPartnershipParticipantApiPost:
         db_session.commit()
 
         payload = [
-            {"character_id": c1.id, "role_code": "FRIEND"},
-            {"character_id": c2.id, "role_code": "MENTOR"},
+            {"character_id": str(c1.id), "role_code": "FRIEND"},
+            {"character_id": str(c2.id), "role_code": "MENTOR"},
         ]
         response = client.post(
             f"/api/v1/partnerships/{p.id}/participants", json=payload
@@ -236,7 +237,8 @@ class TestPartnershipParticipantApiPost:
 
     def test_add_participants_partnership_not_found(self, client):
         """Test error when partnership doesn't exist."""
-        payload = [{"character_id": 1, "role_code": "FRIEND"}]
+        uuid_str = "00000000-0000-0000-0000-000000000001"
+        payload = [{"character_id": uuid_str, "role_code": "FRIEND"}]
         response = client.post("/api/v1/partnerships/999/participants", json=payload)
         assert response.status_code == 404
 
@@ -246,7 +248,8 @@ class TestPartnershipParticipantApiPost:
         db_session.add(p)
         db_session.commit()
 
-        payload = [{"character_id": 999, "role_code": "FRIEND"}]
+        uuid_str = "00000000-0000-0000-0000-000000000999"
+        payload = [{"character_id": uuid_str, "role_code": "FRIEND"}]
         response = client.post(
             f"/api/v1/partnerships/{p.id}/participants", json=payload
         )
@@ -267,7 +270,7 @@ class TestPartnershipParticipantApiPut:
         db_session.add(pp)
         db_session.commit()
 
-        payload = {"character_id": c.id, "role_code": "MENTOR"}
+        payload = {"character_id": str(c.id), "role_code": "MENTOR"}
         response = client.put(
             f"/api/v1/partnerships/{p.id}/participants/{c.id}", json=payload
         )
@@ -278,8 +281,9 @@ class TestPartnershipParticipantApiPut:
 
     def test_update_participant_not_found(self, client):
         """Test error when participant doesn't exist."""
-        payload = {"character_id": 1, "role_code": "MENTOR"}
-        response = client.put("/api/v1/partnerships/1/participants/1", json=payload)
+        uuid = "00000000-0000-0000-0000-000000000999"
+        payload = {"character_id": uuid, "role_code": "MENTOR"}
+        response = client.put(f"/api/v1/partnerships/1/participants/{uuid}", json=payload)
         assert response.status_code == 404
 
 
@@ -310,5 +314,6 @@ class TestPartnershipParticipantApiDelete:
 
     def test_delete_participant_not_found(self, client):
         """Test error when participant doesn't exist."""
-        response = client.delete("/api/v1/partnerships/1/participants/1")
+        uuid = "00000000-0000-0000-0000-000000000999"
+        response = client.delete(f"/api/v1/partnerships/1/participants/{uuid}")
         assert response.status_code == 404

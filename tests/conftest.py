@@ -2,20 +2,11 @@ from typing import Generator
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
 from sqlmodel import Session, SQLModel, insert
 
-from charservice.db import enable_foreign_keys, get_db
+from charservice.db import get_db, engine
 from charservice.main import app
 from charservice.modules.auth.service import get_current_user
-
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-)
-enable_foreign_keys(engine)
 
 
 @pytest.fixture(scope="session")

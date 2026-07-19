@@ -1,16 +1,12 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Sequence
+from uuid import UUID
 
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 
-from charservice.models.model import (
-    Character,
-    CharacterCreate,
-    CharacterWrite,
-    Image,
-    Roleplaying,
-)
+from charservice.models.model import Character, Image, Roleplaying
+from charservice.models.schemas import CharacterCreate, CharacterWrite
 
 
 @dataclass(slots=True)
@@ -25,7 +21,7 @@ class CharacterQuery:
 
 class CharacterService:
     @staticmethod
-    def get_characters(session: Session, query: CharacterQuery) -> list[Character]:
+    def get_characters(session: Session, query: CharacterQuery) -> Sequence[Character]:
         """Retrieve characters with optional sorting, filtering, and field selection."""
         stmt = select(Character).where(Character.story_uuid == query.story_uuid)
 
@@ -49,7 +45,8 @@ class CharacterService:
 
     @staticmethod
     def get_character_by_id(
-        session: Session, character_id: int, permitted_stories: set[str]) -> Character | None:
+        session: Session, character_id: UUID, permitted_stories: set[str]
+    ) -> Character | None:
         """Retrieve a character by its ID."""
         if permitted_stories is None:
             return session.get(
@@ -93,7 +90,7 @@ class CharacterService:
     @staticmethod
     def update_character(
         session: Session,
-        character_id: int,
+        character_id: UUID,
         character: CharacterWrite,
         permitted_stories: set[str] | None,
     ) -> None:
@@ -130,7 +127,7 @@ class CharacterService:
 
     @staticmethod
     def delete_character(
-        session: Session, character_id: int, permitted_stories: set[str] | None
+        session: Session, character_id: UUID, permitted_stories: set[str] | None
     ) -> None:
         """Delete a character."""
         character = CharacterService.get_character_by_id(
