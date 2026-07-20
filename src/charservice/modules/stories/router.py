@@ -22,7 +22,7 @@ async def get_permitted_stories(
 
 @router.get("/get_permitted_stories_by_ids")
 async def get_permitted_stories_by_ids(
-    session: Session = Depends(get_db), permitted_stories: Sequence[int] = Depends(gms)
+    session: Session = Depends(get_db), permitted_stories: Sequence[str] = Depends(gms)
 ) -> list[dict[str, str | Any | None]]:
 
     return SagaService.get_permitted_story_names_by_ids(session, permitted_stories)

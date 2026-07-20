@@ -13,6 +13,17 @@ class TestStoryApi:
 
 
 
-        response = client.get("/api/v1/stories/get_permitted_stories_by_ids")
+        response = client.get(
+            "/api/v1/get_permitted_stories_by_ids",
+            headers={"X-Permitted-Stories": f"{saga1.id},{saga2.id}"}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 2
+        
+        # Verify the returned list contains the stories with correct mapping
+        items_map = {item["uuid"]: item["name"] for item in data}
+        assert items_map[saga1.id] == "Saga One"
+        assert items_map[saga2.id] == "Saga Two"
 
 

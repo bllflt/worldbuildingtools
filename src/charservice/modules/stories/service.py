@@ -15,10 +15,17 @@ class SagaService:
 
     @staticmethod
     def get_permitted_story_names_by_ids(
-        session: Session, permitted_story_ids: Sequence[int]
+        session: Session, permitted_story_ids: Sequence[int | str]
     ) -> list[dict[str, str | Any | None]]:
         """Get a list of stories with their UUIDs and names."""
-        stmt = select(Saga.id, Saga.title).where(Saga.id.in_(permitted_story_ids))
+        int_ids = []
+        for id_val in permitted_story_ids:
+            try:
+                int_ids.append(int(id_val))
+            except (ValueError, TypeError):
+                continue
+
+        stmt = select(Saga.id, Saga.title).where(Saga.id.in_(int_ids))
         return [
             {"uuid": saga_id, "name": title}
             for saga_id, title in session.exec(stmt).all()
