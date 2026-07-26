@@ -1,6 +1,7 @@
 import json
 from dataclasses import dataclass
 from pathlib import Path
+from uuid import UUID
 
 import httpx
 from fastapi import APIRouter, Depends, status
@@ -22,7 +23,7 @@ class CaptionJobRequest:
 
 @dataclass(slots=True)
 class CaptionJobResult:
-    character_id: int
+    character_id: UUID
     explanation: str | None
     merge: str | None
 
@@ -79,7 +80,7 @@ async def process_caption_result(
             json.dumps(
                 {
                     "topic": "reconcile",
-                    "character_id": data.character_id,
+                    "character_id": str(data.character_id),
                     "explanation": data.explanation,
                     "new_description": data.merge,
                 }

@@ -4,6 +4,7 @@ import shutil
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
+from uuid import UUID
 
 import httpx
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
@@ -31,7 +32,7 @@ async def get_images(
 
 @router.post("/characters/upload-image")
 async def upload_character_image(
-    character_id: int = Form(
+    character_id: UUID = Form(
         ..., description="The ID of the character to associate the image with"
     ),
     image: UploadFile = File(..., description="The image file to upload"),
