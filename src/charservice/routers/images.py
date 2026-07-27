@@ -16,6 +16,7 @@ from charservice.config import config
 from charservice.db import get_db
 from charservice.mdb import get_redis
 from charservice.models.model import Character, Image
+from charservice.modules.auth.service import get_permitted_stories
 
 router = APIRouter()
 
@@ -79,8 +80,11 @@ class ImageJobRequest:
     character_id: str
 
 
-@router.post("/characters/generate-image")
-async def generate_character_image(message: ImageJobRequest) -> None:
+@router.post("/api/v1/characters/generate-image")
+async def generate_character_image(
+    message: ImageJobRequest,
+    permitted_stories: set[str] = Depends(get_permitted_stories),
+) -> None:
 
     url = f"{config.llm_proxy_url}/api/v1/images"
     token = create_access_token({"sub": "apifast"})
@@ -90,6 +94,7 @@ async def generate_character_image(message: ImageJobRequest) -> None:
                 url,
                 json={
                     "character_id": str(message.character_id),
+                    "permitted_stories": list(permitted_stories),
                 },
                 headers={"Authorization": f"Bearer {token}"},
             )
