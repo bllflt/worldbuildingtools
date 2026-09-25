@@ -5,8 +5,8 @@ SESSION="dev_env"
 # Kill any existing session to avoid conflicts
 screen -S "$SESSION" -X quit 2>/dev/null || true
 
-# 1. Start a new detached session with the first window (Redis)
-screen -dmS "$SESSION" -t redis /usr/local/opt/redis/bin/redis-server /usr/local/etc/redis.conf
+# 1. Start a new detached session with the first window (shell)
+screen -dmS "$SESSION" -t shell /bin/zsh  
 
 # Wait for session to initialize
 sleep 2
@@ -21,25 +21,19 @@ fi
 screen -S "$SESSION" -X screen  # Creates window 1 and selects it
 screen -S "$SESSION" -X title fastapi
 screen -S "$SESSION" -X stuff "cd ~/automatic-picture-inserter && source venv/bin/activate && cd src/charservice && fastapi dev main.py --port 2000\n"
-screen -S "$SESSION" -X select 0  # Select back to window 0 (Redis)
+screen -S "$SESSION" -X select 0  # Select back to window 0 
 
 # 3. Create a new window for Frontend
 screen -S "$SESSION" -X screen  # Creates window 2 and selects it
 screen -S "$SESSION" -X title frontend
 screen -S "$SESSION" -X stuff "cd ~/wb-bront && npm run dev\n"
-screen -S "$SESSION" -X select 0  # Select back to window 0 (Redis)
+screen -S "$SESSION" -X select 0  # Select back to window 0 
 
 # 4. Create a new window for LLM Proxy
 screen -S "$SESSION" -X screen  # Creates window 3 and selects it
 screen -S "$SESSION" -X title llm_proxy 
 screen -S "$SESSION" -X stuff "cd ~/llm_proxy && source venv/bin/activate && cd app && fastapi dev main.py --port 4000\n"
-screen -S "$SESSION" -X select 0  # Select back to window 0 (Redis)
-
-# 5. Create a new window for nginx
-screen -S "$SESSION" -X sceen   # Creates window 4 and selects it
-screen -S "$SESSION" -X title nginx
-screen -S "$SESSION" -X stuff "cd ~/nginx && /usr/local/opt/nginx/bin/nginx -c ~/nginx/nginx.conf -g 'daemon off;'"
-screen -S "$SESSION" -X select 0   # Select back to window 0 (Redis)
+screen -S "$SESSION" -X select 0  # Select back to window 0
 
 echo "Screen session '$SESSION' created with windows: redis, fastapi, llm_proxy, frontend"
 echo "Attach with: screen -r $SESSION"
