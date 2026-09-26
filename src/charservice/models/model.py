@@ -3,7 +3,7 @@ from uuid import UUID
 from sqlalchemy import CheckConstraint, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel, text
 
-from charservice.models.enums import Ptype, RoleCode, Sex
+from charservice.models.enums import Sex
 from charservice.models.schemas import CharacterBase, PartnershipBase
 
 

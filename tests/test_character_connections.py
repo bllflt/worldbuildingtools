@@ -1,4 +1,4 @@
-from charservice.models.model import Ptype, RoleCode, Sex
+from charservice.models.enums import Ptype, RoleCode, Sex
 
 pytest_plugins = ("conftest_char_connections",)
 

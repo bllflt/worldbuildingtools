@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, insert
 
-from charservice.db import get_db, engine
+from charservice.db import engine, get_db
 from charservice.main import app
 from charservice.modules.auth.service import get_current_user
 
@@ -57,7 +57,8 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
 
 
 def populate_role(session: Session):
-    from charservice.models.model import Role, RoleCode
+    from charservice.models.enums import RoleCode
+    from charservice.models.model import Role
 
     data = [{"code": member.value} for member in RoleCode]
     session.exec(insert(Role), params=data)

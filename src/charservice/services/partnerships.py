@@ -3,7 +3,8 @@ from typing import Optional
 
 from sqlmodel import Session, select
 
-from charservice.models.model import Partnership, Ptype
+from charservice.models.enums import Ptype
+from charservice.models.model import Partnership
 from charservice.models.schemas import PartnershipWrite
 
 

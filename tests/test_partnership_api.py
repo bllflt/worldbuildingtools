@@ -1,10 +1,10 @@
 from sqlmodel import select
 
+from charservice.models.enums import Ptype
 from charservice.models.model import (
     Character,
     Partnership,
     PartnershipParticipant,
-    Ptype,
 )
 
 
@@ -283,7 +283,9 @@ class TestPartnershipParticipantApiPut:
         """Test error when participant doesn't exist."""
         uuid = "00000000-0000-0000-0000-000000000999"
         payload = {"character_id": uuid, "role_code": "MENTOR"}
-        response = client.put(f"/api/v1/partnerships/1/participants/{uuid}", json=payload)
+        response = client.put(
+            f"/api/v1/partnerships/1/participants/{uuid}", json=payload
+        )
         assert response.status_code == 404
 
 
