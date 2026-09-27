@@ -64,6 +64,7 @@ class Image(SQLModel, table=True):
         unique=True,
         sa_column_args=[CheckConstraint("length(trim(uri)) > 0")],
     )
+    prompt: str | None = None
     character_link: "Character" = Relationship(back_populates="image_attributes")
 
 

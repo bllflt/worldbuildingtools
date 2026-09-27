@@ -1,5 +1,6 @@
 import json
 import logging
+import mimetypes
 import shutil
 import uuid
 from dataclasses import dataclass
@@ -8,7 +9,7 @@ from uuid import UUID
 
 import httpx
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import Response
 from sqlmodel import Session
 
 from charservice.auth.jwt import create_access_token
@@ -25,8 +26,9 @@ router = APIRouter()
 async def get_images(
     image_uri: str,
 ):
-    return JSONResponse(
-        content="",
+    return Response(
+        media_type=mimetypes.guess_type(image_uri)[0] or "application/octet-stream",
+        content=None,
         headers={"X-Accel-Redirect": "/protected_files/" + image_uri},
     )
 
