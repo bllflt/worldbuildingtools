@@ -6,6 +6,7 @@ from fastmcp.server.auth.providers.jwt import JWTVerifier
 from charservice.config import config
 from charservice.mcp.character_connections import mcp as mcp_character_connections
 from charservice.mcp.characters import mcp as mcp_characters
+from charservice.modules.arsmagica import router as arsmagica
 from charservice.modules.auth import router as auth
 from charservice.modules.auth.service import get_current_user
 from charservice.modules.stories import router as stories
@@ -64,6 +65,8 @@ app.include_router(events.router, prefix="/api/v1")
 app.include_router(
     chat.router, prefix="/api/v1", dependencies=[Depends(get_current_user)]
 )
+
+app.include_router(arsmagica.router, prefix="/api/v1")
 
 app.include_router(images.router)
 

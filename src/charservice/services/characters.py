@@ -1,5 +1,5 @@
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Optional, Sequence
 from uuid import UUID
 
 from sqlalchemy.orm import selectinload
@@ -14,9 +14,9 @@ class CharacterQuery:
     """Query parameters for retrieving Character objects."""
 
     story_uuid: str
-    sort: Optional[str] = None
-    name: Optional[str] = None
-    fields: Optional[set[str]] = None
+    sort: str | None = None
+    name: str | None = None
+    fields: set[str] | None = None
 
 
 class CharacterService:
