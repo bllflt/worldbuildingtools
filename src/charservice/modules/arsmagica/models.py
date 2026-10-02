@@ -13,11 +13,8 @@ class Virtue(SQLModel, table=True):
 
     name: str = Field(default=None, primary_key=True, min_length=1)
     description: str = Field(min_length=1)
-    category: str = Field(
-        primary_key=True, foreign_key="categories.code", ondelete="CASCADE"
-    )
+    category: str = Field(foreign_key="categories.code", ondelete="CASCADE")
     level: str = Field(
-        primary_key=True,
         sa_column_args=[CheckConstraint("level IN ('Minor', 'Major', 'Free')")],
     )
     tainted: bool | None = Field(default=False)

@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy.orm import selectinload
@@ -7,40 +8,34 @@ from sqlmodel import Session, select
 
 from charservice.models.model import Character, Image, Roleplaying
 from charservice.models.schemas import CharacterCreate, CharacterWrite
+from charservice.services.query import BaseQuery, build_query_statement
 
 
 @dataclass(slots=True)
-class CharacterQuery:
+class CharacterQuery(BaseQuery):
     """Query parameters for retrieving Character objects."""
 
-    story_uuid: str
+    story_uuid: str = ""
     sort: str | None = None
     name: str | None = None
-    fields: set[str] | None = None
+    fields: Sequence[str] | set[str] | None = None
 
 
 class CharacterService:
     @staticmethod
-    def get_characters(session: Session, query: CharacterQuery) -> Sequence[Character]:
+    def get_characters(session: Session, query: CharacterQuery) -> Sequence[Any]:
         """Retrieve characters with optional sorting, filtering, and field selection."""
-        stmt = select(Character).where(Character.story_uuid == query.story_uuid)
-
-        if query.fields:
-            stmt = select(*(getattr(Character, f) for f in query.fields))
-            stmt = stmt.where(Character.story_uuid == query.story_uuid)
-
-        if query.sort:
-            stmt = stmt.order_by(getattr(Character, query.sort))
-
-        if query.name:
-            stmt = stmt.where(Character.name.icontains(query.name))
-
-        if not query.fields:
-            stmt = stmt.options(
+        stmt = build_query_statement(
+            Character,
+            fields=query.fields,
+            sort=query.sort,
+            name=query.name,
+            where_clauses=[Character.story_uuid == query.story_uuid],
+            options=[
                 selectinload(Character.roleplaying_attributes),
                 selectinload(Character.image_attributes),
-            )
-
+            ],
+        )
         return session.exec(stmt).all()
 
     @staticmethod

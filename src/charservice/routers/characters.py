@@ -9,6 +9,7 @@ from charservice.models.model import Character
 from charservice.models.schemas import CharacterCreate, CharacterRead, CharacterWrite
 from charservice.modules.auth.service import get_permitted_stories
 from charservice.services.characters import CharacterQuery, CharacterService
+from charservice.services.query import format_fields_response, validate_fields
 
 router = APIRouter(
     tags=["characters"],
@@ -37,7 +38,7 @@ async def get_characters_list(
     session: Session = Depends(get_db),
     permitted_stories: set[str] = Depends(get_permitted_stories),
 ) -> list[CharacterRead] | Response:
-    include_fields: set[str] | None = None
+    include_fields: list[str] | None = None
 
     if story_uuid not in permitted_stories:
         raise HTTPException(
@@ -46,19 +47,7 @@ async def get_characters_list(
         )
 
     if fields:
-        include_fields = fields.split(",")
-
-        valid_fields = [
-            field
-            for field in include_fields
-            if field in CharacterRead.model_fields.keys()
-        ]
-        if len(valid_fields) != len(include_fields):
-            invalid_fields = set(include_fields) - set(valid_fields)
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid fields requested: {', '.join(invalid_fields)}",
-            )
+        include_fields = validate_fields(fields, CharacterRead)
 
     results = CharacterService.get_characters(
         session,
@@ -71,13 +60,7 @@ async def get_characters_list(
     )
     if fields is None:
         return [CharacterRead.model_validate(c) for c in results]
-    rv = []
-    for row in results:
-        filtered_item = {k: row[i] for i, k in enumerate(include_fields)}
-        if "id" in include_fields:
-            filtered_item["id"] = str(row.id)
-        rv.append(filtered_item)
-    return JSONResponse(content=rv)
+    return JSONResponse(content=format_fields_response(results, include_fields))
 
 
 @router.post(
