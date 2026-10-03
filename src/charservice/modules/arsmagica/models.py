@@ -1,4 +1,6 @@
-from sqlalchemy import CheckConstraint
+from uuid import UUID
+
+from sqlalchemy import CheckConstraint, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -50,3 +52,16 @@ class VirtueRequirement(SQLModel, table=True):
     requires: str = Field(
         foreign_key="virtues.name", ondelete="CASCADE", primary_key=True
     )
+
+
+class CharacterXVirtue(SQLModel, table=True):
+    __tablename__ = "character_x_virtue"  # type: ignore[override]
+    __table_args__ = (UniqueConstraint("character_id", "virtue"),)
+
+    id: int = Field(default=None, primary_key=True)
+    character_id: UUID = Field(
+        default=None,
+        foreign_key="character.id",
+        ondelete="CASCADE",
+    )
+    virtue: str = Field(foreign_key="virtues.name", ondelete="CASCADE")

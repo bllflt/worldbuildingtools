@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, Query, Response
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, Query, Response, status
 from fastapi.responses import JSONResponse
 from sqlmodel import Session
 
 from charservice.db import get_db
-from charservice.modules.arsmagica.schemas import VirtueSchema
+from charservice.modules.arsmagica.schemas import CharacterVirtueSchema, VirtueSchema
 from charservice.modules.arsmagica.service import VirtueQuery, VirtueService
 from charservice.services.query import format_fields_response, validate_fields
 
@@ -54,3 +56,35 @@ async def read_virtue_details(
 ) -> VirtueSchema:
     result = VirtueService.get_virtue_by_name(session, virtue_name)
     return VirtueSchema.model_validate(result)
+
+
+@router.get("/characters/{character_id}/virtues")
+async def read_virtues_of_character(
+    character_id: UUID, session: Session = Depends(get_db)
+) -> list[str]:
+    results = VirtueService.get_virtues_of_character(session, character_id)
+    return results
+
+
+@router.post(
+    "/characters/{character_id}/virtues/",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def update_virtue_of_character(
+    character_id: UUID,
+    virtue: CharacterVirtueSchema,
+    session: Session = Depends(get_db),
+) -> None:
+    VirtueService.update_virtue_of_character(session, character_id, virtue.name)
+
+
+@router.delete(
+    "/characters/{character_id}/virtues/{virtue}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def remove_virtue_of_character(
+    character_id: UUID,
+    virtue: str,
+    session: Session = Depends(get_db),
+) -> None:
+    VirtueService.remove_virtue_of_character(session, character_id, virtue)
