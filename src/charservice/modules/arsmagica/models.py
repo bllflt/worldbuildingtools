@@ -65,3 +65,27 @@ class CharacterXVirtue(SQLModel, table=True):
         ondelete="CASCADE",
     )
     virtue: str = Field(foreign_key="virtues.name", ondelete="CASCADE")
+
+
+class Flaw(SQLModel, table=True):
+    __tablename__ = "flaws"  # type: ignore[override]
+
+    name: str = Field(default=None, primary_key=True, min_length=1)
+    description: str = Field(min_length=1)
+    category: str = Field(foreign_key="categories.code", ondelete="CASCADE")
+    level: str = Field(
+        sa_column_args=[CheckConstraint("level IN ('Minor', 'Major')")],
+    )
+
+
+class CharacterXFlaw(SQLModel, table=True):
+    __tablename__ = "character_x_flaw"  # type: ignore[override]
+    __table_args__ = (UniqueConstraint("character_id", "flaw"),)
+
+    id: int = Field(default=None, primary_key=True)
+    character_id: UUID = Field(
+        default=None,
+        foreign_key="character.id",
+        ondelete="CASCADE",
+    )
+    flaw: str = Field(foreign_key="flaws.name", ondelete="CASCADE")

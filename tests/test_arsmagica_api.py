@@ -1,4 +1,4 @@
-from charservice.modules.arsmagica.models import Category, Virtue
+from charservice.modules.arsmagica.models import Category, Flaw, Virtue
 
 
 class TestArsMagicaApiGet:
@@ -67,3 +67,25 @@ class TestArsMagicaApiGet:
         response = client.get("/api/v1/virtues?fields=invalid_field")
         assert response.status_code == 400
         assert "Invalid fields requested" in response.json()["detail"]
+
+    def test_get_flaws_sort_filter_and_fields(self, db_session, client):
+        category = Category(code="Hermetic")
+        flaw_z = Flaw(
+            name="Z-Flaw",
+            description="Desc Z",
+            category="Hermetic",
+            level="Minor",
+        )
+        flaw_a = Flaw(
+            name="A-Flaw",
+            description="Desc A",
+            category="Hermetic",
+            level="Major",
+        )
+        db_session.add_all([category, flaw_z, flaw_a])
+        db_session.commit()
+
+        response = client.get("/api/v1/flaws?name=Flaw&sort=name&fields=name")
+
+        assert response.status_code == 200
+        assert response.json() == [{"name": "A-Flaw"}, {"name": "Z-Flaw"}]
