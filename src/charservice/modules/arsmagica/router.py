@@ -1,8 +1,8 @@
 from collections.abc import Callable, Sequence
-from typing import Any, TypeVar
+from typing import Any, Literal, TypeVar
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlmodel import Session
@@ -31,16 +31,33 @@ def _read_traits(
     *,
     sort: str | None,
     name: str | None,
+    q: str | None,
+    mode: Literal["keyword", "semantic", "hybrid"] | None,
+    limit: int | None,
     fields: str | None,
     schema: type[SchemaT],
     get_traits: Callable[[Session, BaseQuery | None], Sequence[Any]],
 ) -> list[SchemaT] | Response:
+    if (q is not None or mode is not None) and (q is None or not q.strip()):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="A non-empty q value is required for search.",
+        )
     include_fields = validate_fields(fields, schema) if fields else None
     results = get_traits(
         session,
-        BaseQuery(sort=sort, name=name, fields=include_fields),
+        BaseQuery(
+            sort=sort,
+            name=name,
+            fields=include_fields,
+            q=q,
+            mode=mode,
+            limit=limit,
+        ),
     )
     if include_fields is None:
+        if mode in ("semantic", "hybrid"):
+            results = [row[0] for row in results]
         return [schema.model_validate(trait) for trait in results]
     return JSONResponse(content=format_fields_response(results, include_fields))
 
@@ -62,6 +79,11 @@ def _read_traits(
 async def read_virtue(
     sort: str | None = Query(None, description="Field to sort by"),
     name: str | None = Query(None, description="Filter by name"),
+    q: str | None = Query(None, description="Search query"),
+    mode: Literal["keyword", "semantic", "hybrid"] | None = Query(
+        None, description="Search mode"
+    ),
+    limit: int | None = Query(None, ge=0, description="Maximum results to return"),
     fields: str | None = Query(None, description="Fields to return"),
     session: Session = Depends(get_db),
 ) -> list[VirtueSchema] | Response:
@@ -69,6 +91,9 @@ async def read_virtue(
         session,
         sort=sort,
         name=name,
+        q=q,
+        mode=mode,
+        limit=limit,
         fields=fields,
         schema=VirtueSchema,
         get_traits=VirtueService.get_traits,
@@ -92,6 +117,11 @@ async def read_virtue(
 async def read_flaws(
     sort: str | None = Query(None, description="Field to sort by"),
     name: str | None = Query(None, description="Filter by name"),
+    q: str | None = Query(None, description="Search query"),
+    mode: Literal["keyword", "semantic", "hybrid"] | None = Query(
+        None, description="Search mode"
+    ),
+    limit: int | None = Query(None, ge=0, description="Maximum results to return"),
     fields: str | None = Query(None, description="Fields to return"),
     session: Session = Depends(get_db),
 ) -> list[FlawSchema] | Response:
@@ -99,6 +129,9 @@ async def read_flaws(
         session,
         sort=sort,
         name=name,
+        q=q,
+        mode=mode,
+        limit=limit,
         fields=fields,
         schema=FlawSchema,
         get_traits=FlawService.get_traits,

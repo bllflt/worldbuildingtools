@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import CheckConstraint, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -20,6 +21,7 @@ class Virtue(SQLModel, table=True):
         sa_column_args=[CheckConstraint("level IN ('Minor', 'Major', 'Free')")],
     )
     tainted: bool | None = Field(default=False)
+    embedding: list[float] | None = Field(default=None, sa_type=Vector(384))
     conflicts_with: list["VirtueConflict"] = Relationship(
         sa_relationship_kwargs={
             "primaryjoin": "Virtue.name == VirtueConflict.virtue",
@@ -76,6 +78,7 @@ class Flaw(SQLModel, table=True):
     level: str = Field(
         sa_column_args=[CheckConstraint("level IN ('Minor', 'Major')")],
     )
+    embedding: list[float] | None = Field(default=None, sa_type=Vector(384))
 
 
 class CharacterXFlaw(SQLModel, table=True):

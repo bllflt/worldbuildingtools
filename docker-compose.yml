@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:18
+    image: pgvector/pgvector:0.8.7-pg18-trixie 
     restart: always
     container_name: PostgreSQL
     environment:
@@ -32,6 +32,21 @@ services:
     ports:
     - "80:80"
     - "443:443"
+  api:
+    build: .
+    image: api:latest
+    restart: always
+    container_name: api
+    volumes:
+      - /Users/joel/Documents/wbcr/images:/app/data/images
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .docker-env
+    ports:
+      - "2000:2000"
+
 secrets:
   postgres-passwd:
     file: ./secrets/postgres-passwd.txt

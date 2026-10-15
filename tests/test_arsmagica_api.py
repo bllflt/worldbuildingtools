@@ -89,3 +89,27 @@ class TestArsMagicaApiGet:
 
         assert response.status_code == 200
         assert response.json() == [{"name": "A-Flaw"}, {"name": "Z-Flaw"}]
+
+    def test_get_flaws_keyword_query_fields_and_limit(self, db_session, client):
+        category = Category(code="Hermetic")
+        matching_flaw = Flaw(
+            name="Cursed",
+            description="A persistent curse",
+            category="Hermetic",
+            level="Major",
+        )
+        other_flaw = Flaw(
+            name="Disfigured",
+            description="A visible mark",
+            category="Hermetic",
+            level="Minor",
+        )
+        db_session.add_all([category, matching_flaw, other_flaw])
+        db_session.commit()
+
+        response = client.get(
+            "/api/v1/flaws?q=persistent+curse&mode=keyword&fields=name&limit=1"
+        )
+
+        assert response.status_code == 200
+        assert response.json() == [{"name": "Cursed"}]

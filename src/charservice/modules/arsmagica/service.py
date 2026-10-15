@@ -45,6 +45,9 @@ class CharacterTraitService(Generic[TraitT]):
             fields=query.fields,
             sort=query.sort,
             name=query.name,
+            q=query.q,
+            mode=query.mode,
+            limit=query.limit,
         )
         return session.exec(stmt).all()
 
