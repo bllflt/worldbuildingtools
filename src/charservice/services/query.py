@@ -14,6 +14,7 @@ from sqlmodel.sql.expression import Select, SelectOfScalar
 T = TypeVar("T", bound=SQLModel)
 SearchMode: TypeAlias = Literal["keyword", "semantic", "hybrid"]
 EMBEDDING_MODEL_NAME = "BAAI/bge-small-en-v1.5"
+QUERY_INSTRUCTION_PREFIX = "Represent this sentence for searching relevant passages: "
 
 
 @lru_cache(maxsize=1)
@@ -23,7 +24,7 @@ def _get_embedding_model() -> Any:
 
 
 def _encode_query(query: str) -> Any:
-    return _get_embedding_model().encode(query)
+    return _get_embedding_model().encode(f"{QUERY_INSTRUCTION_PREFIX}{query}")
 
 
 def _model_field(model: type[T], field: str) -> Any:
@@ -105,14 +106,17 @@ def build_query_statement(
         if keyword_match is None or distance_expr is None:
             raise RuntimeError("Hybrid search expressions were not initialized.")
         keyword_rank = case((keyword_match, 0), else_=1)
+        order_by = [keyword_rank, distance_expr]
         if sort_field is not None:
-            stmt = stmt.order_by(sort_field, keyword_rank, distance_expr)
-        else:
-            stmt = stmt.order_by(keyword_rank, distance_expr)
+            order_by.append(sort_field)
+        stmt = stmt.order_by(*order_by)
+    elif distance_expr is not None:
+        order_by = [distance_expr]
+        if sort_field is not None:
+            order_by.append(sort_field)
+        stmt = stmt.order_by(*order_by)
     elif sort_field is not None:
         stmt = stmt.order_by(sort_field)
-    elif distance_expr is not None:
-        stmt = stmt.order_by(distance_expr)
 
     if name and hasattr(model, "name"):
         stmt = stmt.where(_model_field(model, "name").icontains(name))
