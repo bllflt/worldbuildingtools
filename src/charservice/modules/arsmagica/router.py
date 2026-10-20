@@ -203,3 +203,14 @@ async def remove_virtue_of_character(
     session: Session = Depends(get_db),
 ) -> None:
     VirtueService.remove_virtue_of_character(session, character_id, virtue)
+
+@router.delete(
+    "/characters/{character_id}/flaws/{flaw}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def remove_flaw_of_character(
+    character_id: UUID,
+    flaw: str,
+    session: Session = Depends(get_db),
+) -> None:
+    FlawService.remove_flaw_of_character(session, character_id, flaw)
