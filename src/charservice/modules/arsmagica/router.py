@@ -9,12 +9,18 @@ from sqlmodel import Session
 
 from charservice.db import get_db
 from charservice.modules.arsmagica.schemas import (
+    AbilitySchema,
+    CharacterAbilitySchema,
     CharacterFlawSchema,
     CharacterVirtueSchema,
     FlawSchema,
     VirtueSchema,
 )
-from charservice.modules.arsmagica.service import FlawService, VirtueService
+from charservice.modules.arsmagica.service import (
+    AbilityService,
+    FlawService,
+    VirtueService,
+)
 from charservice.services.query import (
     BaseQuery,
     format_fields_response,
@@ -138,6 +144,44 @@ async def read_flaws(
     )
 
 
+@router.get(
+    "/abilities",
+    response_model=None,
+    responses={
+        200: {
+            "description": (
+                "A list of abilities. Returns a list of `AbilitySchema` objects by "
+                "default, or a list of dictionaries with specific fields if the "
+                "`fields` query parameter is used."
+            ),
+            "model": list[AbilitySchema],
+        },
+    },
+)
+async def read_abilities(
+    sort: str | None = Query(None, description="Field to sort by"),
+    name: str | None = Query(None, description="Filter by name"),
+    q: str | None = Query(None, description="Search query"),
+    mode: Literal["keyword", "semantic", "hybrid"] | None = Query(
+        None, description="Search mode"
+    ),
+    limit: int | None = Query(None, ge=0, description="Maximum results to return"),
+    fields: str | None = Query(None, description="Fields to return"),
+    session: Session = Depends(get_db),
+) -> list[AbilitySchema] | Response:
+    return _read_traits(
+        session,
+        sort=sort,
+        name=name,
+        q=q,
+        mode=mode,
+        limit=limit,
+        fields=fields,
+        schema=AbilitySchema,
+        get_traits=AbilityService.get_traits,
+    )
+
+
 @router.get("/virtues/{virtue_name}")
 async def read_virtue_details(
     virtue_name: str, session: Session = Depends(get_db)
@@ -154,6 +198,14 @@ async def read_flaw_details(
     return FlawSchema.model_validate(result)
 
 
+@router.get("/abilities/{ability_name}")
+async def read_ability_details(
+    ability_name: str, session: Session = Depends(get_db)
+) -> AbilitySchema:
+    result = AbilityService.get_ability_by_name(session, ability_name)
+    return AbilitySchema.model_validate(result)
+
+
 @router.get("/characters/{character_id}/virtues")
 async def read_virtues_of_character(
     character_id: UUID, session: Session = Depends(get_db)
@@ -167,6 +219,14 @@ async def read_flaws_of_character(
     character_id: UUID, session: Session = Depends(get_db)
 ) -> list[str]:
     results = FlawService.get_flaws_of_character(session, character_id)
+    return list(results)
+
+
+@router.get("/characters/{character_id}/abilities")
+async def read_abilities_of_character(
+    character_id: UUID, session: Session = Depends(get_db)
+) -> list[str]:
+    results = AbilityService.get_abilities_of_character(session, character_id)
     return list(results)
 
 
@@ -193,6 +253,18 @@ async def update_flaw_of_character(
     FlawService.update_flaw_of_character(session, character_id, flaw.name)
 
 
+@router.post(
+    "/characters/{character_id}/abilities/",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def update_ability_of_character(
+    character_id: UUID,
+    ability: CharacterAbilitySchema,
+    session: Session = Depends(get_db),
+) -> None:
+    AbilityService.update_ability_of_character(session, character_id, ability.name)
+
+
 @router.delete(
     "/characters/{character_id}/virtues/{virtue}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -214,3 +286,15 @@ async def remove_flaw_of_character(
     session: Session = Depends(get_db),
 ) -> None:
     FlawService.remove_flaw_of_character(session, character_id, flaw)
+
+
+@router.delete(
+    "/characters/{character_id}/abilities/{ability}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def remove_ability_of_character(
+    character_id: UUID,
+    ability: str,
+    session: Session = Depends(get_db),
+) -> None:
+    AbilityService.remove_ability_of_character(session, character_id, ability)

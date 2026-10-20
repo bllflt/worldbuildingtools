@@ -1,7 +1,56 @@
-from charservice.modules.arsmagica.models import Category, Flaw, Virtue
+from charservice.models.model import Character
+from charservice.modules.arsmagica.models import Ability, Category, Flaw, Virtue
 
 
 class TestArsMagicaApiGet:
+    def test_get_abilities_and_ability_details(self, db_session, client):
+        ability = Ability(
+            name="Athletics",
+            description="Physical exertion and movement",
+            type="General",
+            specialties="running, jumping",
+        )
+        db_session.add(ability)
+        db_session.commit()
+
+        response = client.get("/api/v1/abilities?fields=name&sort=name")
+        assert response.status_code == 200
+        assert response.json() == [{"name": "Athletics"}]
+
+        response = client.get("/api/v1/abilities/Athletics")
+        assert response.status_code == 200
+        assert response.json() == {
+            "name": "Athletics",
+            "description": "Physical exertion and movement",
+            "type": "General",
+            "specialties": "running, jumping",
+        }
+
+    def test_character_ability_endpoints(self, db_session, client):
+        character = Character(story_uuid="test-story", name="Test character")
+        ability = Ability(name="Athletics", description="Physical exertion")
+        db_session.add_all([character, ability])
+        db_session.commit()
+
+        response = client.post(
+            f"/api/v1/characters/{character.id}/abilities/",
+            json={"name": ability.name},
+        )
+        assert response.status_code == 204
+
+        response = client.get(f"/api/v1/characters/{character.id}/abilities")
+        assert response.status_code == 200
+        assert response.json() == ["Athletics"]
+
+        response = client.delete(
+            f"/api/v1/characters/{character.id}/abilities/{ability.name}"
+        )
+        assert response.status_code == 204
+
+        response = client.get(f"/api/v1/characters/{character.id}/abilities")
+        assert response.status_code == 200
+        assert response.json() == []
+
     def test_get_virtues(self, db_session, client):
         cat = Category(code="Hermetic")
         v1 = Virtue(

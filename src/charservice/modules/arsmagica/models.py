@@ -92,3 +92,35 @@ class CharacterXFlaw(SQLModel, table=True):
         ondelete="CASCADE",
     )
     flaw: str = Field(foreign_key="flaws.name", ondelete="CASCADE")
+
+
+class AbilityType(SQLModel, table=True):
+    __tablename__ = "ability_types"  # type: ignore[override]
+
+    code: str = Field(default=None, primary_key=True, min_length=1)
+
+
+class Ability(SQLModel, table=True):
+    __tablename__ = "abilities"  # type: ignore[override]
+
+    name: str = Field(default=None, primary_key=True, min_length=1)
+    description: str = Field(min_length=1)
+    type: str | None = Field(foreign_key="ability_types.code", ondelete="CASCADE")
+    specialties: str | None = Field(default=None)
+    embedding: list[float] | None = Field(default=None, sa_type=Vector(384))
+
+
+class CharacterXAbility(SQLModel, table=True):
+    __tablename__ = "character_x_ability"  # type: ignore[override]
+    __table_args__ = (UniqueConstraint("character_id", "ability"),)
+
+    id: int = Field(default=None, primary_key=True)
+    character_id: UUID = Field(
+        default=None,
+        foreign_key="character.id",
+        ondelete="CASCADE",
+    )
+    ability: str = Field(foreign_key="abilities.name", ondelete="CASCADE")
+    speciality: str | None = Field(default=None)
+    exp: int | None = Field(default=None)
+    score: int | None = Field(default=None)

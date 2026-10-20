@@ -16,3 +16,10 @@ class CategoryCode(StrEnum):
     STORY = "Story"
     MYTHIC_COMPANION = "Mythic Companion"
     SPECIAL = "Special"
+
+class AbilityTypeCode(StrEnum):
+    GENERAL = "General"
+    SUPERNATURAL = "Supernatural"
+    ACADEMIC = "Academic"
+    MARTIAL = "Martial"
+    ARCANE = "Arcane"

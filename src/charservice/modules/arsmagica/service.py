@@ -10,6 +10,8 @@ from charservice.modules.arsmagica.models import (
     CharacterXVirtue,
     Flaw,
     Virtue,
+    Ability,
+    CharacterXAbility,
 )
 from charservice.services.query import BaseQuery, build_query_statement
 
@@ -183,3 +185,39 @@ class FlawService(CharacterTraitService[Flaw]):
         cls, session: Session, character_id: UUID, flaw: str
     ) -> None:
         cls.remove_trait_from_character(session, character_id, flaw)
+
+class AbilityService(CharacterTraitService[Ability]):
+    model = Ability
+    association_model = CharacterXAbility
+    name_field = "name"
+    character_id_field = "character_id"
+    association_field = "ability"
+    trait_name = "ability"
+
+    @classmethod
+    def get_abilities(
+        cls, session: Session, query: BaseQuery | None = None
+    ) -> Sequence[Any]:
+        return cls.get_traits(session, query)
+
+    @classmethod
+    def get_ability_by_name(cls, session: Session, name: str) -> Ability | None:
+        return cls.get_trait_by_name(session, name)
+
+    @classmethod
+    def get_abilities_of_character(
+        cls, session: Session, character_id: UUID
+    ) -> Sequence[str]:
+        return cls.get_traits_of_character(session, character_id)
+
+    @classmethod
+    def update_ability_of_character(
+        cls, session: Session, character_id: UUID, ability: str
+    ) -> None:
+        cls.add_trait_to_character(session, character_id, ability)
+
+    @classmethod
+    def remove_ability_of_character(
+        cls, session: Session, character_id: UUID, ability: str
+    ) -> None:
+        cls.remove_trait_from_character(session, character_id, ability)

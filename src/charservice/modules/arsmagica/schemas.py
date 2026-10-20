@@ -1,6 +1,10 @@
 from pydantic import BaseModel, Field
 
-from charservice.modules.arsmagica.enums import CategoryCode, VirtueFlawLevelCode
+from charservice.modules.arsmagica.enums import (
+    AbilityTypeCode,
+    CategoryCode,
+    VirtueFlawLevelCode,
+)
 
 
 class VirtueFlawBaseSchema(BaseModel):
@@ -38,3 +42,24 @@ class CharacterFlawSchema(BaseModel):
     }
 
     name: str = Field(..., description="Name of the flaw")
+
+
+class AbilitySchema(BaseModel):
+    model_config = {
+        "from_attributes": True,
+    }
+
+    name: str = Field(..., description="Name of the ability", min_length=1)
+    description: str = Field(
+        ..., description="Description of the ability", min_length=1
+    )
+    type: AbilityTypeCode | None = Field(None, description="Type of the ability")
+    specialties: str | None = Field(None, description="Specialties for the ability")
+
+
+class CharacterAbilitySchema(BaseModel):
+    model_config = {
+        "from_attributes": True,
+    }
+
+    name: str = Field(..., description="Name of the ability")
