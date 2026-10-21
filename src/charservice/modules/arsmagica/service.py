@@ -68,6 +68,15 @@ class CharacterTraitService(Generic[TraitT]):
         return session.exec(stmt).all()
 
     @classmethod
+    def get_trait_associations_of_character(
+        cls, session: Session, character_id: UUID
+    ) -> Sequence[SQLModel]:
+        stmt = select(cls.association_model).where(
+            getattr(cls.association_model, cls.character_id_field) == character_id
+        )
+        return session.exec(stmt).all()
+
+    @classmethod
     def add_trait_to_character(
         cls,
         session: Session,

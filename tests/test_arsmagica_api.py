@@ -68,7 +68,14 @@ class TestArsMagicaApiGet:
 
         response = client.get(f"/api/v1/characters/{character.id}/abilities")
         assert response.status_code == 200
-        assert response.json() == ["Athletics"]
+        assert response.json() == [
+            {
+                "name": "Athletics",
+                "speciality": "running",
+                "exp": 15,
+                "score": 3,
+            }
+        ]
 
         response = client.delete(
             f"/api/v1/characters/{character.id}/abilities/{ability.name}"
@@ -78,6 +85,42 @@ class TestArsMagicaApiGet:
         response = client.get(f"/api/v1/characters/{character.id}/abilities")
         assert response.status_code == 200
         assert response.json() == []
+
+    def test_character_virtue_and_flaw_endpoints(self, db_session, client):
+        category = Category(code="Hermetic")
+        character = Character(story_uuid="test-story", name="Test character")
+        virtue = Virtue(
+            name="Affinity with Art",
+            description="Learn Art faster",
+            category="Hermetic",
+            level="Minor",
+        )
+        flaw = Flaw(
+            name="Cursed",
+            description="A persistent curse",
+            category="Hermetic",
+            level="Major",
+        )
+        db_session.add_all([category, character, virtue, flaw])
+        db_session.commit()
+
+        for endpoint, name in (
+            ("virtues", virtue.name),
+            ("flaws", flaw.name),
+        ):
+            response = client.post(
+                f"/api/v1/characters/{character.id}/{endpoint}/",
+                json={"name": name},
+            )
+            assert response.status_code == 204
+
+        response = client.get(f"/api/v1/characters/{character.id}/virtues")
+        assert response.status_code == 200
+        assert response.json() == [{"name": virtue.name}]
+
+        response = client.get(f"/api/v1/characters/{character.id}/flaws")
+        assert response.status_code == 200
+        assert response.json() == [{"name": flaw.name}]
 
     def test_get_virtues(self, db_session, client):
         cat = Category(code="Hermetic")

@@ -209,25 +209,25 @@ async def read_ability_details(
 @router.get("/characters/{character_id}/virtues")
 async def read_virtues_of_character(
     character_id: UUID, session: Session = Depends(get_db)
-) -> list[str]:
-    results = VirtueService.get_virtues_of_character(session, character_id)
-    return list(results)
+) -> list[CharacterVirtueSchema]:
+    results = VirtueService.get_trait_associations_of_character(session, character_id)
+    return [CharacterVirtueSchema.model_validate(result) for result in results]
 
 
 @router.get("/characters/{character_id}/flaws")
 async def read_flaws_of_character(
     character_id: UUID, session: Session = Depends(get_db)
-) -> list[str]:
-    results = FlawService.get_flaws_of_character(session, character_id)
-    return list(results)
+) -> list[CharacterFlawSchema]:
+    results = FlawService.get_trait_associations_of_character(session, character_id)
+    return [CharacterFlawSchema.model_validate(result) for result in results]
 
 
 @router.get("/characters/{character_id}/abilities")
 async def read_abilities_of_character(
     character_id: UUID, session: Session = Depends(get_db)
-) -> list[str]:
-    results = AbilityService.get_abilities_of_character(session, character_id)
-    return list(results)
+) -> list[CharacterAbilitySchema]:
+    results = AbilityService.get_trait_associations_of_character(session, character_id)
+    return [CharacterAbilitySchema.model_validate(result) for result in results]
 
 
 @router.post(

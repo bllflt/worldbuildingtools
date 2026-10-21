@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import AliasChoices, BaseModel, Field
 
 from charservice.modules.arsmagica.enums import (
     AbilityTypeCode,
@@ -33,7 +33,11 @@ class CharacterVirtueSchema(BaseModel):
         "from_attributes": True,
     }
 
-    name: str = Field(..., description="Name of the virtue")
+    name: str = Field(
+        ...,
+        description="Name of the virtue",
+        validation_alias=AliasChoices("name", "virtue"),
+    )
 
 
 class CharacterFlawSchema(BaseModel):
@@ -41,7 +45,11 @@ class CharacterFlawSchema(BaseModel):
         "from_attributes": True,
     }
 
-    name: str = Field(..., description="Name of the flaw")
+    name: str = Field(
+        ...,
+        description="Name of the flaw",
+        validation_alias=AliasChoices("name", "flaw"),
+    )
 
 
 class AbilitySchema(BaseModel):
@@ -62,7 +70,11 @@ class CharacterAbilitySchema(BaseModel):
         "from_attributes": True,
     }
 
-    name: str = Field(..., description="Name of the ability")
+    name: str = Field(
+        ...,
+        description="Name of the ability",
+        validation_alias=AliasChoices("name", "ability"),
+    )
     speciality: str | None = Field(default=None)
     exp: int | None = Field(default=None)
     score: int | None = Field(default=None)
