@@ -262,7 +262,14 @@ async def update_ability_of_character(
     ability: CharacterAbilitySchema,
     session: Session = Depends(get_db),
 ) -> None:
-    AbilityService.update_ability_of_character(session, character_id, ability.name)
+    AbilityService.update_ability_of_character(
+        session,
+        character_id,
+        ability.name,
+        score=ability.score,
+        exp=ability.exp,
+        speciality=ability.speciality,
+    )
 
 
 @router.delete(

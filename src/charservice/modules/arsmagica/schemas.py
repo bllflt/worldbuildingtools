@@ -63,3 +63,6 @@ class CharacterAbilitySchema(BaseModel):
     }
 
     name: str = Field(..., description="Name of the ability")
+    speciality: str | None = Field(default=None)
+    exp: int | None = Field(default=None)
+    score: int | None = Field(default=None)

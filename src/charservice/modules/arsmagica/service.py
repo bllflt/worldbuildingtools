@@ -6,12 +6,12 @@ from uuid import UUID
 from sqlmodel import Session, SQLModel, select
 
 from charservice.modules.arsmagica.models import (
+    Ability,
+    CharacterXAbility,
     CharacterXFlaw,
     CharacterXVirtue,
     Flaw,
     Virtue,
-    Ability,
-    CharacterXAbility,
 )
 from charservice.services.query import BaseQuery, build_query_statement
 
@@ -69,7 +69,11 @@ class CharacterTraitService(Generic[TraitT]):
 
     @classmethod
     def add_trait_to_character(
-        cls, session: Session, character_id: UUID, trait: str
+        cls,
+        session: Session,
+        character_id: UUID,
+        trait: str,
+        **association_fields: Any,
     ) -> None:
         if cls.get_trait_by_name(session, trait) is None:
             raise ValueError(f"{cls.trait_name.capitalize()} '{trait}' does not exist.")
@@ -88,7 +92,11 @@ class CharacterTraitService(Generic[TraitT]):
             )
 
         new_entry = cls.association_model(
-            **{"character_id": character_id, cls.association_field: trait}
+            **{
+                **association_fields,
+                "character_id": character_id,
+                cls.association_field: trait,
+            }
         )
         session.add(new_entry)
         session.commit()
@@ -186,6 +194,7 @@ class FlawService(CharacterTraitService[Flaw]):
     ) -> None:
         cls.remove_trait_from_character(session, character_id, flaw)
 
+
 class AbilityService(CharacterTraitService[Ability]):
     model = Ability
     association_model = CharacterXAbility
@@ -212,9 +221,22 @@ class AbilityService(CharacterTraitService[Ability]):
 
     @classmethod
     def update_ability_of_character(
-        cls, session: Session, character_id: UUID, ability: str
+        cls,
+        session: Session,
+        character_id: UUID,
+        ability: str,
+        score: int | None = None,
+        exp: int | None = None,
+        speciality: str | None = None,
     ) -> None:
-        cls.add_trait_to_character(session, character_id, ability)
+        cls.add_trait_to_character(
+            session,
+            character_id,
+            ability,
+            score=score,
+            exp=exp,
+            speciality=speciality,
+        )
 
     @classmethod
     def remove_ability_of_character(

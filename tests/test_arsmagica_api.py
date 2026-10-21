@@ -1,9 +1,23 @@
+from sqlmodel import select
+
 from charservice.models.model import Character
-from charservice.modules.arsmagica.models import Ability, Category, Flaw, Virtue
+from charservice.modules.arsmagica.enums import AbilityTypeCode
+from charservice.modules.arsmagica.models import (
+    Ability,
+    AbilityType,
+    Category,
+    CharacterXAbility,
+    Flaw,
+    Virtue,
+)
 
 
 class TestArsMagicaApiGet:
     def test_get_abilities_and_ability_details(self, db_session, client):
+        ac = AbilityType(code=AbilityTypeCode.GENERAL)
+        db_session.add(ac)
+        db_session.commit()
+
         ability = Ability(
             name="Athletics",
             description="Physical exertion and movement",
@@ -28,15 +42,29 @@ class TestArsMagicaApiGet:
 
     def test_character_ability_endpoints(self, db_session, client):
         character = Character(story_uuid="test-story", name="Test character")
-        ability = Ability(name="Athletics", description="Physical exertion")
+        ac = AbilityType(code=AbilityTypeCode.GENERAL)
+        db_session.add(ac)
+        db_session.commit()
+        ability = Ability(
+            name="Athletics", description="Physical exertion", type="General"
+        )
         db_session.add_all([character, ability])
         db_session.commit()
 
         response = client.post(
             f"/api/v1/characters/{character.id}/abilities/",
-            json={"name": ability.name},
+            json={
+                "name": ability.name,
+                "score": 3,
+                "exp": 15,
+                "speciality": "running",
+            },
         )
         assert response.status_code == 204
+        character_ability = db_session.exec(select(CharacterXAbility)).one()
+        assert character_ability.score == 3
+        assert character_ability.exp == 15
+        assert character_ability.speciality == "running"
 
         response = client.get(f"/api/v1/characters/{character.id}/abilities")
         assert response.status_code == 200
