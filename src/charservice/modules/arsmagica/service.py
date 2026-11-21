@@ -7,6 +7,7 @@ from sqlmodel import Session, SQLModel, select
 
 from charservice.modules.arsmagica.models import (
     Ability,
+    Characteristics,
     CharacterXAbility,
     CharacterXFlaw,
     CharacterXVirtue,
@@ -252,3 +253,27 @@ class AbilityService(CharacterTraitService[Ability]):
         cls, session: Session, character_id: UUID, ability: str
     ) -> None:
         cls.remove_trait_from_character(session, character_id, ability)
+
+
+class CharacteristicsService:
+    @classmethod
+    def get_characteristics(
+        cls, session: Session, character_id: UUID
+    ) -> Characteristics | None:
+        stmt = select(Characteristics).where(
+            Characteristics.character_id == character_id
+        )
+        return session.exec(stmt).one_or_none()
+
+    @classmethod
+    def update_characteristics(
+        cls, session: Session, character_id: UUID, **update: dict[str, int]
+    ) -> None:
+        characteristics = cls.get_characteristics(session, character_id)
+
+        for field, value in update.items():
+            if hasattr(characteristics, field):
+                setattr(characteristics, field, value)
+            else:
+                raise ValueError(f"Invalid field '{field}' for Characteristics.")
+        session.commit()

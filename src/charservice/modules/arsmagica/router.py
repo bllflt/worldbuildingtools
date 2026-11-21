@@ -12,12 +12,15 @@ from charservice.modules.arsmagica.schemas import (
     AbilitySchema,
     CharacterAbilitySchema,
     CharacterFlawSchema,
+    Characteristics,
+    CharacteristicsPatch,
     CharacterVirtueSchema,
     FlawSchema,
     VirtueSchema,
 )
 from charservice.modules.arsmagica.service import (
     AbilityService,
+    CharacteristicsService,
     FlawService,
     VirtueService,
 )
@@ -283,6 +286,7 @@ async def remove_virtue_of_character(
 ) -> None:
     VirtueService.remove_virtue_of_character(session, character_id, virtue)
 
+
 @router.delete(
     "/characters/{character_id}/flaws/{flaw}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -305,3 +309,43 @@ async def remove_ability_of_character(
     session: Session = Depends(get_db),
 ) -> None:
     AbilityService.remove_ability_of_character(session, character_id, ability)
+
+
+@router.get(
+    "/characters/{character_id}/characteristics", response_model=Characteristics
+)
+async def read_characteristics_of_character(
+    character_id: UUID, session: Session = Depends(get_db)
+) -> Characteristics:
+    result = CharacteristicsService.get_characteristics(session, character_id)
+    return Characteristics.model_validate(result)
+
+
+@router.put(
+    "/characters/{character_id}/characteristics",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def write_characteristics_of_character(
+    character_id: UUID,
+    characteristics: Characteristics,
+    session: Session = Depends(get_db),
+) -> None:
+    CharacteristicsService.update_characteristics(
+        session,
+        character_id,
+        **characteristics.model_dump(),
+    )
+
+
+@router.patch(
+    "/characters/{character_id}/characteristics",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def patch_characteristics_of_character(
+    character_id: UUID,
+    characteristics: CharacteristicsPatch,
+    session: Session = Depends(get_db),
+) -> None:
+    CharacteristicsService.update_characteristics(
+        session, character_id, **characteristics.model_dump(exclude_unset=True)
+    )

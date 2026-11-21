@@ -124,3 +124,22 @@ class CharacterXAbility(SQLModel, table=True):
     speciality: str | None = Field(default=None)
     exp: int | None = Field(default=None)
     score: int | None = Field(default=None)
+
+
+class Characteristics(SQLModel, table=True):
+    __tablename__ = "characteristics"  # type: ignore[override]
+
+    character_id: UUID = Field(
+        default=None,
+        foreign_key="character.id",
+        ondelete="CASCADE",
+        primary_key=True,
+    )
+    intelligence: int = Field(default=0, sa_column_kwargs={"server_default": "0"})
+    perception: int = Field(default=0, sa_column_kwargs={"server_default": "0"})
+    strength: int = Field(default=0, sa_column_kwargs={"server_default": "0"})
+    stamina: int = Field(default=0, sa_column_kwargs={"server_default": "0"})
+    presence: int = Field(default=0, sa_column_kwargs={"server_default": "0"})
+    communication: int = Field(default=0, sa_column_kwargs={"server_default": "0"})
+    dexterity: int = Field(default=0, sa_column_kwargs={"server_default": "0"})
+    quickness: int = Field(default=0, sa_column_kwargs={"server_default": "0"})

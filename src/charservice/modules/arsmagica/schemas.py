@@ -78,3 +78,29 @@ class CharacterAbilitySchema(BaseModel):
     speciality: str | None = Field(default=None)
     exp: int | None = Field(default=None)
     score: int | None = Field(default=None)
+
+
+class Characteristics(BaseModel):
+    model_config = {
+        "from_attributes": True,
+    }
+
+    intelligence: int = Field(default=0, ge=-5, le=5)
+    perception: int = Field(default=0, ge=-5, le=5)
+    strength: int = Field(default=0, ge=-5, le=5)
+    stamina: int = Field(default=0, ge=-5, le=5)
+    presence: int = Field(default=0, ge=-5, le=5)
+    communication: int = Field(default=0, ge=-5, le=5)
+    dexterity: int = Field(default=0, ge=-5, le=5)
+    quickness: int = Field(default=0, ge=-5, le=5)
+
+
+class CharacteristicsPatch(BaseModel):
+    intelligence: int | None = None
+    perception: int | None = None
+    strength: int | None = None
+    stamina: int | None = None
+    presence: int | None = None
+    communication: int | None = None
+    dexterity: int | None = None
+    quickness: int | None = None
