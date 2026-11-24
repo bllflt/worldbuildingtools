@@ -230,6 +230,40 @@ class AbilityService(CharacterTraitService[Ability]):
         return cls.get_traits_of_character(session, character_id)
 
     @classmethod
+    def get_character_abilities(
+        cls, session: Session, character_id: UUID
+    ) -> Sequence[dict[str, Any]]:
+        stmt = (
+            select(CharacterXAbility, Ability.display_template)
+            .join(Ability, CharacterXAbility.ability == Ability.name)
+            .where(CharacterXAbility.character_id == character_id)
+        )
+        return [
+            {
+                "name": association.ability,
+                "speciality": association.speciality,
+                "exp": association.exp,
+                "score": association.score,
+                "display_value": cls._format_display_value(
+                    display_template, association.parameters or {}
+                ),
+            }
+            for association, display_template in session.exec(stmt).all()
+        ]
+
+    @staticmethod
+    def _format_display_value(
+        display_template: str | None, parameters: dict[str, Any]
+    ) -> str | None:
+        if display_template is None:
+            return None
+
+        try:
+            return display_template.format_map(parameters)
+        except KeyError:
+            return None
+
+    @classmethod
     def update_ability_of_character(
         cls,
         session: Session,
@@ -238,6 +272,7 @@ class AbilityService(CharacterTraitService[Ability]):
         score: int | None = None,
         exp: int | None = None,
         speciality: str | None = None,
+        parameters: dict[str, Any] | None = None,
     ) -> None:
         cls.add_trait_to_character(
             session,
@@ -246,6 +281,7 @@ class AbilityService(CharacterTraitService[Ability]):
             score=score,
             exp=exp,
             speciality=speciality,
+            parameters=parameters or {},
         )
 
     @classmethod

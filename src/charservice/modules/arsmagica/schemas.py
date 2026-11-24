@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import AliasChoices, BaseModel, Field
 
 from charservice.modules.arsmagica.enums import (
@@ -78,6 +80,8 @@ class CharacterAbilitySchema(BaseModel):
     speciality: str | None = Field(default=None)
     exp: int | None = Field(default=None)
     score: int | None = Field(default=None)
+    parameters: dict[str, Any] = Field(default_factory=dict, exclude=True)
+    display_value: str | None = Field(default=None)
 
 
 class Characteristics(BaseModel):

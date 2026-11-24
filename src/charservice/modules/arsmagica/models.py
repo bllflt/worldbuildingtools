@@ -1,7 +1,9 @@
+from typing import Any
 from uuid import UUID
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import CheckConstraint, UniqueConstraint
+from sqlalchemy import CheckConstraint, Column, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -108,6 +110,7 @@ class Ability(SQLModel, table=True):
     type: str | None = Field(foreign_key="ability_types.code", ondelete="CASCADE")
     specialties: str | None = Field(default=None)
     embedding: list[float] | None = Field(default=None, sa_type=Vector(384))
+    display_template: str | None = Field(default=None)
 
 
 class CharacterXAbility(SQLModel, table=True):
@@ -124,6 +127,7 @@ class CharacterXAbility(SQLModel, table=True):
     speciality: str | None = Field(default=None)
     exp: int | None = Field(default=None)
     score: int | None = Field(default=None)
+    parameters: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONB))
 
 
 class Characteristics(SQLModel, table=True):

@@ -46,7 +46,9 @@ class TestArsMagicaApiGet:
         db_session.add(ac)
         db_session.commit()
         ability = Ability(
-            name="Athletics", description="Physical exertion", type="General"
+            name="Athletics",
+            description="Physical exertion",
+            type="General",
         )
         db_session.add_all([character, ability])
         db_session.commit()
@@ -74,6 +76,7 @@ class TestArsMagicaApiGet:
                 "speciality": "running",
                 "exp": 15,
                 "score": 3,
+                "display_value": None,
             }
         ]
 
@@ -233,3 +236,88 @@ class TestArsMagicaApiGet:
 
         assert response.status_code == 200
         assert response.json() == [{"name": "Cursed"}]
+
+    def test_ability_with_display_template(self, db_session, client):
+        ability_type = AbilityType(code=AbilityTypeCode.GENERAL)
+        db_session.add(ability_type)
+        db_session.commit()
+
+        ability_one = Ability(
+            name="(Dead Language)",
+            description="Something about dead languages",
+            type=AbilityTypeCode.GENERAL,
+            specialties="running, jumping",
+            display_template="{language}",
+        )
+        ability_two = Ability(
+            name="(Area) Lore",
+            description="Certain knowledge about a specific area",
+            type=AbilityTypeCode.GENERAL,
+            specialties="geography, history, legends, politics, personalities.",
+            display_template="{area} Lore",
+        )
+        ability_three = Ability(
+            name="Medicine",
+            description="The art of healing",
+            type=AbilityTypeCode.GENERAL,
+            specialties="diagnosis, surgery, herbalism, and pharmacology",
+        )
+        db_session.add_all([ability_one, ability_two, ability_three])
+        db_session.commit()
+
+        character = Character(story_uuid="test-story", name="Test character")
+        db_session.add(character)
+        db_session.commit()
+
+        c_x_ability_one = CharacterXAbility(
+            character_id=character.id,
+            ability=ability_one.name,
+            score=3,
+            exp=15,
+            speciality="grammar",
+            parameters={"language": "Latin"},
+        )
+        c_x_ability_two = CharacterXAbility(
+            character_id=character.id,
+            ability=ability_two.name,
+            score=4,
+            exp=20,
+            speciality="geography",
+            parameters={"area": "Kent"},
+        )
+        c_x_ability_three = CharacterXAbility(
+            character_id=character.id,
+            ability=ability_three.name,
+            score=5,
+            exp=25,
+            speciality="diagnosis",
+            parameters={},
+        )
+        db_session.add_all([c_x_ability_one, c_x_ability_two, c_x_ability_three])
+        db_session.commit()
+
+        response = client.get(f"/api/v1/characters/{character.id}/abilities")
+        assert response.status_code == 200
+        assert sorted(response.json(), key=lambda x: x["score"]) == [
+            {
+                "name": "(Dead Language)",
+                "speciality": "grammar",
+                "display_value": "Latin",
+                "exp": 15,
+                "score": 3,
+            },
+            {
+                "name": "(Area) Lore",
+                "speciality": "geography",
+                "display_value": "Kent Lore",
+                "exp": 20,
+                "score": 4,
+            },
+            {
+                "name": "Medicine",
+                "speciality": "diagnosis",
+                "display_value": None,
+                "exp": 25,
+                "score": 5,
+            },
+        ]

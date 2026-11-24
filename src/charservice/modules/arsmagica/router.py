@@ -229,7 +229,7 @@ async def read_flaws_of_character(
 async def read_abilities_of_character(
     character_id: UUID, session: Session = Depends(get_db)
 ) -> list[CharacterAbilitySchema]:
-    results = AbilityService.get_trait_associations_of_character(session, character_id)
+    results = AbilityService.get_character_abilities(session, character_id)
     return [CharacterAbilitySchema.model_validate(result) for result in results]
 
 
@@ -272,6 +272,7 @@ async def update_ability_of_character(
         score=ability.score,
         exp=ability.exp,
         speciality=ability.speciality,
+        parameters=ability.parameters,
     )
 
 
