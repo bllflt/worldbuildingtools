@@ -38,6 +38,7 @@ class TestArsMagicaApiGet:
             "description": "Physical exertion and movement",
             "type": "General",
             "specialties": "running, jumping",
+            "display_template": None,
         }
 
     def test_character_ability_endpoints(self, db_session, client):
@@ -321,3 +322,34 @@ class TestArsMagicaApiGet:
                 "score": 5,
             },
         ]
+
+    def test_update_character_ability_with_parameters(self, db_session, client):
+        ability_type = AbilityType(code=AbilityTypeCode.GENERAL)
+        db_session.add(ability_type)
+        db_session.commit()
+
+        ability = Ability(
+            name="Craft (Type)",
+            description="A general term for countless Abilities, all dealing with handiwork of some type.",
+            type=AbilityTypeCode.GENERAL,
+            specialties="as appropriate to the craft",
+            display_template="Craft ({type})",
+        )
+        db_session.add(ability)
+        db_session.commit()
+
+        character = Character(story_uuid="test-story", name="Test character")
+        db_session.add(character)
+        db_session.commit()
+
+        response = client.post(
+            f"/api/v1/characters/{character.id}/abilities/",
+            json={
+                "name": ability.name,
+                "score": 3,
+                "exp": 15,
+                "speciality": "locks",
+                "parameters": {"type": "Blacksmith"},
+            },
+        )
+        assert response.status_code == 204

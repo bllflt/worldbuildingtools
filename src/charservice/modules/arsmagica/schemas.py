@@ -65,6 +65,9 @@ class AbilitySchema(BaseModel):
     )
     type: AbilityTypeCode | None = Field(None, description="Type of the ability")
     specialties: str | None = Field(None, description="Specialties for the ability")
+    display_template: str | None = Field(
+        None, description="Template for displaying the ability"
+    )
 
 
 class CharacterAbilitySchema(BaseModel):
